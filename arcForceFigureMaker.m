@@ -11,6 +11,7 @@ function arcForceFigureMaker(data,index,label,barelabel,dimensional,forces,lengt
 %Ydata = (data, water depth, heading, steering, flow speed)
 
 rho = 1000; %water density
+gravity = 9.81; %acceleration due to gravity
 
 %number of items to loop over
 fields = fieldnames(data);
@@ -53,6 +54,8 @@ fields = fieldnames(data);
                     %steering
                     indq = yData2{j}{:,4}==q(k);
                     yData3{counter} = yData2{j}(indq,:);
+                    %sort by heading, increasing from 0 - 180
+                    yData3{counter} = sortrows(yData3{counter},'Heading');
                     if yData3{counter}{1,4} == 0
                         hold on
                         plot(yData3{counter},'Heading',barelabel,'LineStyle','-','Marker','o','Color',col(colCounter,:),...
@@ -101,8 +104,16 @@ fields = fieldnames(data);
                 barelabel = 'CMz';
             end
         end
+        %Froude number instead of speed
+        for i=1:length(fields)
+            %temp = data.(fields{i}){17,2}/100; %flow speed m/s
+            %Fr = temp/(sqrt(gravity*length_Scale));
+            %displacement froude number
+            Fr = yData{i,6}/(sqrt(gravity*(length_Scale)^(1/3)));
+            yData(i,8) = {round(Fr,2,'significant')};
+        end
         yData.Properties.VariableNames = [barelabel,"Water Depth","Heading",...
-        "Steering","Flow Speed",'Target Flow Speed','h/D'];
+        "Steering","Flow Speed",'Target Flow Speed','h/D','Fr'];
         %use tiles for water depth 
         m = unique(yData{:,7});
         tile = tiledlayout(2,2); %2x2 layout
@@ -113,29 +124,39 @@ fields = fieldnames(data);
             %depth
             indm = yData{:,7}==m(i);
             yData1{i} = yData(indm,:);
-            q = unique(yData1{i}{:,4});   
+            n = unique(yData1{i}{:,8});   
             col = [100/255 143/255 255/255;...
                    220/255 38/255 127/255;...
                    255/255 176/255 0/255]; %IBM color map
             nexttile;
-            for k = 1:length(q)
-                %steering
-                indq = find(yData1{i}{:,4}==q(k));
-                yData3{counter} = yData1{i}(indq,:);
+            yData2{1,3} = [];
+            for j = 1:length(n)
+                %Froude number
+                indn = yData1{i}{:,8}==n(j);
+                yData2{j} = yData1{i}(indn,:);
+                q = unique(yData2{j}{:,4});
                 colCounter = colCounter+1;
-                if yData3{counter}{1,4} == 0
-                    hold on
-                    plot(yData3{counter},'Heading',barelabel,'LineStyle','-','Marker','o','Color',col(colCounter,:),...
-                        'DisplayName',strcat("Steering= ",string(yData3{counter}{1,4}),'deg'));
-                elseif yData3{counter}{1,4} > 0
-                     plot(yData3{counter},'Heading',barelabel,'LineStyle','-','Marker','<','Color',col(colCounter,:),...
-                        'DisplayName',strcat("Steering= ",string(yData3{counter}{1,4}),'deg'));
-                else
-                     plot(yData3{counter},'Heading',barelabel,'LineStyle','-','Marker','>','Color',col(colCounter,:),...
-                        'DisplayName',strcat("Steering= ",string(yData3{counter}{1,4}),'deg'));
-                end
-                counter = counter+1;
-            end
+                for k = 1:length(q)
+                    %steering
+                    indq = yData2{j}{:,4}==q(k);
+                    yData3{counter} = yData2{j}(indq,:);
+                    %sort by heading, increasing from 0 - 180
+                    yData3{counter} = sortrows(yData3{counter},'Heading');
+                    if yData3{counter}{1,4} == 0
+                        hold on
+                        plot(yData3{counter},'Heading',barelabel,'LineStyle','-','Marker','o','Color',col(colCounter,:),...
+                            'DisplayName',strcat("Steering= ",string(yData3{counter}{1,4}),'deg',' Fr = ',string(yData3{counter}{1,8})));
+                    elseif yData3{counter}{1,4} > 0
+                         plot(yData3{counter},'Heading',barelabel,'LineStyle','-','Marker','<','Color',col(colCounter,:),...
+                            'DisplayName',strcat("Steering= ",string(yData3{counter}{1,4}),'deg',' Fr = ',string(yData3{counter}{1,8})));
+                    else
+                         plot(yData3{counter},'Heading',barelabel,'LineStyle','-','Marker','>','Color',col(colCounter,:),...
+                            'DisplayName',strcat("Steering= ",string(yData3{counter}{1,4}),'deg',' Fr = ',string(yData3{counter}{1,8})));
+                    end
+                    counter = counter+1;
+                end %end steering
+            end %end froude
+            clear yData2
             title(strcat(barelabel,' V. h/d= ',string(yData3{counter-1}{1,7})));
             xlabel("Heading (deg)");
             xticks(0:22.5:max(yData{:,3}));

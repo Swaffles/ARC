@@ -202,6 +202,7 @@ for ind = 1:6
     dims = false; %true for dimensional forces/moments
     forces = true;
     volume = 0.0757; %vehicle volume m^3
+    %length = 1.287; %length in m
     if ind>3
         forces = false;
     end
