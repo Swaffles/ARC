@@ -17,7 +17,12 @@ clc
 
 debug = true;
 
-
+try 
+    addpath(programPath)
+catch
+    programPath = uigetdir('Select GitHub Folder');
+    addpath(programPath);
+end
 try 
     addpath(dataPath)
 catch
@@ -184,7 +189,8 @@ if saveMe
     end
     save("HydroData.mat","Arc",'-v7.3');
 end
-clearvars -except Arc vars homePath dataPath debug
+clearvars -except Arc vars homePath dataPath programPath debug 
+cd(programPath);
 
 %%
 %create a figure compiling the data from each test
