@@ -80,11 +80,23 @@ fields = fieldnames(data);
             colCounter = 0;
         end
     else
+        %Froude number instead of speed
+        for i=1:length(fields)
+            %depth froude number
+            depth = yData{i,2}/100; %get target depth in m
+            Fr = yData{i,6}/(sqrt(gravity*depth)); %real speed yData{i,5}
+            Sr = depth/(length_Scale^1/3);
+            %scaling Fr
+            FrSr = Fr*sqrt(Sr);
+            %displacement froude number
+            %Fr = yData{i,6}/(sqrt(gravity*(length_Scale)^(1/3)));
+            yData(i,8) = {round(FrSr,2,"significant")};
+        end
         if forces
             for i=1:height(yData)
-                yData{i,1} = yData{i,1}/(0.5*rho*yData{i,5}^2*length_Scale^(2/3));
+                yData{i,1} = yData{i,1}/(0.5*rho*yData{i,5}^2*length_Scale^(2/3)*Sr);
             end
-            label = strcat(barelabel,'/','$\frac{1}{2}*\rho*U^2*Vol^{2/3}$');
+            label = strcat(barelabel,'/','$\frac{1}{2}*\rho*U^2*Vol^{2/3}*frac{h}{Vol^{1/3}}$');
             if strcmp(barelabel,'Fx')
                 barelabel = 'CFx';
             elseif strcmp(barelabel,'Fy')
@@ -94,9 +106,9 @@ fields = fieldnames(data);
             end
         else
             for i=1:height(yData)
-                yData{i,1} = yData{i,1}/(0.5*rho*yData{i,5}^2*length_Scale);
+                yData{i,1} = yData{i,1}/(0.5*rho*yData{i,5}^2*length_Scale*Sr);
             end
-            label = strcat(barelabel,'/','$\frac{1}{2}*\rho*U^2*Vol$');
+            label = strcat(barelabel,'/','$\frac{1}{2}*\rho*U^2*Vol*frac{h}{Vol^{1/3}}$');
             if strcmp(barelabel,'Mx')
                 barelabel = 'CMx';
             elseif strcmp(barelabel,'My')
@@ -105,38 +117,25 @@ fields = fieldnames(data);
                 barelabel = 'CMz';
             end
         end
-        %Froude number instead of speed
-        for i=1:length(fields)
-            %depth froude number
-            depth = yData{i,2}/100; %get target depth in m
-            Fr = yData{i,6}/(sqrt(gravity*depth)); %real speed yData{i,5}
-            Sr = sqrt(depth)/(length_Scale^1/3);
-            %scaling Fr
-            FrSr = Fr*Sr;
-            %displacement froude number
-            %Fr = yData{i,6}/(sqrt(gravity*(length_Scale)^(1/3)));
-            yData(i,8) = {round(FrSr,2,"significant")};
-        end
+        
         yData.Properties.VariableNames = [barelabel,"Water Depth","Heading",...
         "Steering","Flow Speed",'Target Flow Speed','h/D','Fr'];
         %use tiles for water depth 
         m = unique(yData{:,7});
+        lineStyles = ["-","--",":","-."];
         counter = 1;
-        col = [100/255 143/255 255/255;...
-               120/255 94/255 240/255;...
-               220/255 38/255 127/255;...
-               255/255 176/255 0/255]; %IBM color map
+        col = lines(12); %12 Fr numbers (one repeate)
         colCounter = 0;
         yData1{1,4}=[];
         for i = 1:length(m)
             %depth
             indm = yData{:,7}==m(i);
             yData1{i} = yData(indm,:);
-            n = unique(yData1{i}{:,8}); 
-            colCounter = colCounter+1;
+            n = unique(yData1{i}{:,8});
             yData2{1,3} = [];
             for j = 1:length(n)
                 %Froude number
+                colCounter = colCounter+1;
                 indn = yData1{i}{:,8}==n(j);
                 yData2{j} = yData1{i}(indn,:);
                 q = unique(yData2{j}{:,4});    
@@ -148,13 +147,13 @@ fields = fieldnames(data);
                     yData3{counter} = sortrows(yData3{counter},'Heading');
                     if yData3{counter}{1,4} == 0
                         hold on
-                        plot(yData3{counter},'Heading',barelabel,'LineStyle','-','Marker','o','Color',col(colCounter,:),...
+                        plot(yData3{counter},'Heading',barelabel,'LineStyle',lineStyles(i),'Marker','o','Color',col(colCounter,:),...
                             'DisplayName',strcat("H/d= ",string(yData3{counter}{1,7})," Steering= ",string(yData3{counter}{1,4}),'deg',' Fr = ',string(yData3{counter}{1,8})));
                     elseif yData3{counter}{1,4} > 0
-                         plot(yData3{counter},'Heading',barelabel,'LineStyle','-','Marker','<','Color',col(colCounter,:),...
+                         plot(yData3{counter},'Heading',barelabel,'LineStyle',lineStyles(i),'Marker','<','Color',col(colCounter,:),...
                             'DisplayName',strcat("H/d= ",string(yData3{counter}{1,7})," Steering= ",string(yData3{counter}{1,4}),'deg',' Fr = ',string(yData3{counter}{1,8})));
                     else
-                         plot(yData3{counter},'Heading',barelabel,'LineStyle','-','Marker','>','Color',col(colCounter,:),...
+                         plot(yData3{counter},'Heading',barelabel,'LineStyle',lineStyles(i),'Marker','>','Color',col(colCounter,:),...
                             'DisplayName',strcat("H/d= ",string(yData3{counter}{1,7})," Steering= ",string(yData3{counter}{1,4}),'deg',' Fr = ',string(yData3{counter}{1,8})));
                     end
                     counter = counter+1;

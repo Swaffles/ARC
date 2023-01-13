@@ -283,3 +283,29 @@ for ind = 1:6
     end
     arcPolarFigureMaker(Arc,ind,label,barelabel,dims,forces,volume,f5);
 end
+
+%%
+%CF v Fr plots
+if debug
+    close all
+end
+%Body Forces
+for ind = 1:6
+    figname = vars{ind};
+    figname = strcat('C',figname);
+    f6 = figure("Name",strcat(figname,' v Froude Number'));
+    label = figname;
+    barelabel = vars{ind};
+    forces = true; %changed automatically by program
+    %function booleans%
+    depthBased = false;
+    tiles = false;
+    excludeShallow = true;
+    %function booleans%
+    volume = 0.0757; %vehicle volume m^3
+    %length = 1.287; %length in m
+    if ind>3
+        forces = false;
+    end
+    arcCoefficientForceFigureMaker(Arc,ind,label,barelabel,depthBased,forces,volume,tiles,excludeShallow);
+end
