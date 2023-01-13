@@ -298,9 +298,9 @@ for ind = 1:6
     barelabel = vars{ind};
     forces = true; %changed automatically by program
     %function booleans%
-    depthBased = false;
-    tiles = false;
-    excludeShallow = true;
+    depthBased = true;
+    tiles = true;
+    excludeShallow = false;
     %function booleans%
     volume = 0.0757; %vehicle volume m^3
     %length = 1.287; %length in m

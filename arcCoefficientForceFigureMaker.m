@@ -40,32 +40,42 @@ end
     yData.Properties.VariableNames = [barelabel,"Water Depth","Heading",...
         "Steering","Flow Speed",'Target Flow Speed','h/D'];
    
-    %Froude number instead of speed
-    for i=1:length(fields)
-        %depth froude number
-        depth = yData{i,2}/100; %get target depth in m
-        if ~depthBased
-            %displacement Fr
-            Fr = yData{i,6}/(sqrt(gravity*depth)); %real speed yData{i,5}
-            Sr = depth/(length_Scale^1/3);
-        else
-            %depth Fr
-            Fr = yData{i,6}/(sqrt(gravity*length_Scale^1/3));
-            Sr = (length_Scale^1/3)/depth;
-        end
-        %scaling Fr
-        FrSr = Fr*sqrt(Sr);
-        %displacement froude number
-        %Fr = yData{i,6}/(sqrt(gravity*(length_Scale)^(1/3)));
-        yData(i,8) = {round(FrSr,2,"significant")};
-    end
+    %nondimensionalization
     if forces
         for i=1:height(yData)
+            %depth
+            depth = yData{i,2}/100; %get target depth in m
+            if ~depthBased
+                %displacement Fr
+                Fr = yData{i,6}/(sqrt(gravity*depth)); %real speed yData{i,5}
+                Sr = depth/(length_Scale^1/3);
+            else
+                %depth Fr
+                Fr = yData{i,6}/(sqrt(gravity*length_Scale^1/3));
+                Sr = (length_Scale^1/3)/depth;
+            end
+            %scaling Fr
+            FrSr = Fr*sqrt(Sr);
+            yData(i,8) = {round(FrSr,2,"significant")};
             yData{i,1} = yData{i,1}/(0.5*rho*yData{i,5}^2*length_Scale^(2/3)*Sr^1);
         end
         label = strcat(barelabel,'/','$\frac{1}{2}*\rho*U^2*Vol^{2/3}*(\frac{h}{Vol^{1/3}})^1$');
     else
         for i=1:height(yData)
+            %depth
+            depth = yData{i,2}/100; %get target depth in m
+            if ~depthBased
+                %displacement Fr
+                Fr = yData{i,6}/(sqrt(gravity*depth)); %real speed yData{i,5}
+                Sr = depth/(length_Scale^1/3);
+            else
+                %depth Fr
+                Fr = yData{i,6}/(sqrt(gravity*length_Scale^1/3));
+                Sr = (length_Scale^1/3)/depth;
+            end
+            %scaling Fr
+            FrSr = Fr*sqrt(Sr);
+            yData(i,8) = {round(FrSr,2,"significant")};
             yData{i,1} = yData{i,1}/(0.5*rho*yData{i,5}^2*length_Scale*Sr);
         end
         label = strcat(barelabel,'/','$\frac{1}{2}*\rho*U^2*Vol*(frac{h}{Vol^{1/3}})^1$');
