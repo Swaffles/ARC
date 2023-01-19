@@ -298,7 +298,7 @@ for ind = 1:6
     barelabel = vars{ind};
     forces = true; %changed automatically by program
     %function booleans%
-    depthBased = false;
+    depthBased = true;
     tiles = true;
     excludeShallow = false;
     %function booleans%
@@ -308,4 +308,57 @@ for ind = 1:6
         forces = false;
     end
     arcCoefficientForceFigureMaker(Arc,ind,label,barelabel,depthBased,forces,volume,tiles,excludeShallow);
+end
+%%
+%Parallel coordinates plot
+if debug
+    close all
+end
+for ind = 1:6
+    figname = vars{ind};
+    f3 = figure("Name",strcat(figname,' Parallel Coordinates'));
+    label = strcat(figname,' (N)');
+    barelabel = figname;
+    dims = true; %true for dimensional forces/moments
+    forces = true;
+    %function booleans%
+    depthBased = true;
+    tiles = true;
+    volume = 0.0757; %vehicle volume m^3
+    if ind>3
+        forces = false;
+    end
+    arcParallelCoordinatesFigureMaker(Arc,ind,label,barelabel,depthBased,forces,volume,tiles);
+end
+%%
+%Stacked area force and moment charts
+if debug
+    close all
+end
+%Each loop creates a new stacked area chart
+%1 = body forces
+%2 - body moments
+%3 - Wheel forces
+%4 - Wheel moments
+for ind = 1:4
+    if ind == 1
+        figname = 'Body Forces';
+    elseif ind == 2
+        figname = 'Body Moments';
+    elseif ind == 3
+        figname = 'Wheel Forces';
+    else
+        figname = 'Wheel Moments';
+    end
+    f1 = figure("Name",strcat(figname,' v Heading'));
+    label = strcat(figname,' (N)');
+    barelabel = figname;
+    dims = false; %true for dimensional forces/moments
+    forces = true;
+    volume = 0.0757; %vehicle volume m^3
+    %length = 1.287; %length in m
+    if ind>3
+        forces = false;
+    end
+    arcForceFigureMaker(Arc,ind,label,barelabel,dims,forces,volume);
 end
