@@ -78,7 +78,7 @@ end
             yData(i,8) = {round(FrSr,2,"significant")};
             yData{i,1} = yData{i,1}/(0.5*rho*yData{i,5}^2*length_Scale*Sr);
         end
-        label = strcat(barelabel,'/','$\frac{1}{2}*\rho*U^2*Vol*(frac{h}{Vol^{1/3}})^1$');
+        label = strcat(barelabel,'/','$\frac{1}{2}*\rho*U^2*Vol*(\frac{h}{Vol^{1/3}})^1$');
     end
     
     yData.Properties.VariableNames = [barelabel,"Water Depth","Heading",...
