@@ -76,6 +76,13 @@ fields = fieldnames(data);
         fprintf("No selection made, exiting function");
         return;
     end
+    %User Selects which Steering angle they want to compare against
+    Steering = unique(yData{:,"Steering"});
+    [indST,tf] = listdlg('ListString',string(Steering),'SelectionMode','single','PromptString','Select a Steering Angle to Comapre');
+    if ~tf
+        fprintf("No selection made, exiting function");
+        return;
+    end
     %User Selects which Speed they want to compare
     Speed = ["Slow","Medium","Fast"];
     [indS,tf] = listdlg('ListString',string(Speed),'SelectionMode','single','PromptString','Select a Depth to Comapre');
@@ -108,12 +115,12 @@ fields = fieldnames(data);
     uniqueSpeed1 = unique(yData1{:,"Target Flow Speed"});
     indx = yData1{:,"Target Flow Speed"} == uniqueSpeed1(indSpeed);
     yData1 = yData1(indx,:);
-    %lock steering
-    indx = yData1{:,"Steering"} == 0;
+    %steering
+    indx = yData1{:,"Steering"} == Steering(indST);
     yData1 = yData1(indx,:);
     X = categorical(unique(yData1{:,"Heading"}));
     %other depths data
-    indx = yData{:,"Steering"} == 0;
+    indx = yData{:,"Steering"} == Steering(indST);
     yData2 = yData(indx,:);
     temp = unique(yData1{:,"Heading"});
     for h=1:length(temp)
@@ -157,7 +164,7 @@ fields = fieldnames(data);
         legend(legendLabel,'Location','northoutside');
     end
     tiledFigureTitle = strcat({'Depth Comparison for: '},Force{indF},...
-        {', U = '},string(Speed(indS)),{' \delta = '},string(0));
+        {', U = '},string(Speed(indS)),{' \delta = '},string(Steering(indST)));
     title(tile,tiledFigureTitle,"Interpreter","tex");
     
    
