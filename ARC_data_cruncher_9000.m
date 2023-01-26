@@ -11,7 +11,7 @@
 %OUTPUTS: Lookup table with mean, standard deviation, and hydrodynamic
 %coefficients for a ground vehicle opporating in shallow water.
 
-clearvars -except homePath dataPath
+clearvars -except homePath dataPath programPath
 close all
 clc
 
@@ -57,7 +57,7 @@ testMatrixFile = dir('ARC Test Matrix Fall 2022.xlsx');
 opts = spreadsheetImportOptions("NumVariables", 15);
 
 opts.Sheet = "Sheet1";
-opts.DataRange = "A4:O327";
+opts.DataRange = "A4:O336";
 
 % Specify column names and types
 opts.VariableNames = ["TrialName", "WaterDepth", "h/D", "PumpDutyCycle",...
@@ -78,8 +78,32 @@ testMatrix = readtable(testMatrixFile.name,opts);
 cd (dataPath);
 dataFiles = dir('EF*');
 dataFileNames = {dataFiles.name};
-%strip _EOD from eodFileNames
-dataFileDates = {dataFiles.date}; %matrix ind aligns with ind in dataFiles
+buoyantFiles = dir('B000*');
+buoyantFileNames = {buoyantFiles.name};
+%read buoyancy data into data table
+%only do this if there's no data or if there's new data
+if noData || length(dataFiles)>length(existingData)
+    for i = 1:length(buoyantFiles)
+        opts = detectImportOptions(buoyantFileNames{i});
+        opts.VariableNamingRule = 'modify';
+        opts.VariableNamesLine = 8;
+        opts.Delimiter = '\t';
+        opts.VariableUnitsLine = 6;
+        opts.DataLines = 9;
+        % Specify file level properties
+        opts.ExtraColumnsRule = "ignore";
+        opts.EmptyLineRule = "read";
+        if debug
+            fprintf("Building buoyancy table entry for %s\n", buoyantFileNames{i});
+        end
+        b = readtable(buoyantFileNames{i},opts);
+        temp = b.Properties.VariableNames;
+        temp2 = strrep(temp,'_','-');
+        b = renamevars(b,temp,temp2);
+        B.(buoyantFileNames{i}) = meanandstdevARC(b,testMatrix,buoyantFileNames{i},-1,debug);
+        B.(buoyantFileNames{i}){[1,2,4,6,7,9],2} = 0; %zeroing values that are due to load cell drift
+    end
+end
 
 %read dataFiles into Table for processing
 if length(dataFiles)>length(existingData)
@@ -97,7 +121,10 @@ if length(dataFiles)>length(existingData)
            opts.EmptyLineRule = "read";
            fprintf("Building data table entry for %s\n", dataFileNames{ind});
            T = readtable(dataFileNames{ind},opts);
-           Arc.(dataFileNames{ind}) = meanandstdevARC(T,testMatrix,dataFileNames{ind},debug);
+           temp = T.Properties.VariableNames;
+           temp2 = strrep(temp,'_','-');
+           T = renamevars(T,temp,temp2);
+           Arc.(dataFileNames{ind}) = meanandstdevARC(T,testMatrix,dataFileNames{ind},B,debug);
         else
             %if the file isn't already a part of T add it
             if ind>length(existingData)
@@ -114,7 +141,10 @@ if length(dataFiles)>length(existingData)
                     fprintf("Building data table entry for %s\n", dataFileNames{ind});
                 end
                 T = readtable(dataFileNames{ind},opts);
-                Arc.(dataFileNames{ind}) = meanandstdevARC(T,testMatrix,dataFileNames{ind},debug);
+                temp = T.Properties.VariableNames;
+                temp2 = strrep(temp,'_','-');
+                T = renamevars(T,temp,temp2);
+                Arc.(dataFileNames{ind}) = meanandstdevARC(T,testMatrix,dataFileNames{ind},B,debug);
             end
         end
         clear T
@@ -124,58 +154,6 @@ else
     fprintf("No new files\n");
     saveMe = false;
 end
-
-
-
-%% BIAS for Buoyancy
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% 12-6-22 Section is currently setup for EOD biasing, this will either be
-% adapted or the buoyancy data will be added as a seperate row in the ARC
-% table
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% cd(dataPath);
-% fields = fieldnames(T.(dataFileNames{1}));
-% %can either be done as an uncertainty or add(subtract) as a bias (mean/2)
-% %12-5-22 choosing to add as a bias (mean/2)
-% if length(dataFiles)>length(existingData)
-%     for i=1:length(existingData)+1:length(existingData)+length(fields)
-%         if debug
-%             fprintf("Correcting data values for %s\n",dataFileNames{i});
-%         end
-%         unCorrectedData = T.(dataFileNames{i});
-%         fields = fieldnames(T.(dataFileNames{i}));
-%         fields = fields(2:end-3);
-%         ind =ismember(eodFileNamesShort,dataFileDates{i});
-%         for j = 1:length(ind)
-%             if ind(j) == 0
-%                 continue
-%             else
-%                 opts = detectImportOptions(eodFileNames{j});
-%                 opts.VariableNamingRule = 'modify';
-%                 opts.VariableNamesLine = 8;
-%                 opts.Delimiter = '\t';
-%                 opts.VariableUnitsLine = 6;
-%                 opts.DataLines = 9;
-%                 % Specify file level properties
-%                 opts.ExtraColumnsRule = "ignore";
-%                 opts.EmptyLineRule = "read";
-%                 CorrectingData = readtable(eodFileNames{j});
-%                 for k = 1:length(fields)
-%                     M = mean(CorrectingData.(fields{k}),'omitnan');
-%                     temp1 = mean(T.(dataFileNames{j}).(fields{k}));
-%                     T.(dataFileNames{j}).(fields{k}) = T.(dataFileNames{j}).(fields{k}) - M/2; %half of the mean
-%                     if debug
-%                         fprintf("Correcting data values of %s for %s with %.2f\n",fields{k},dataFileNames{j},M)
-%                         temp2 = mean(T.(dataFileNames{j}).(fields{k}));
-%                         fprintf("Mean of %s for %s changed from %.2f to %.2f\n",...
-%                             fields{k},dataFileNames{j}, temp1, temp2);
-%                     end
-%                 end
-%             end
-%         end
-%     end
-% end
-% clear temp1 temp2 M fields
 
 %%
 %Saving
@@ -205,7 +183,7 @@ for ind = 1:6
     f1 = figure("Name",strcat(figname,' v Heading'));
     label = strcat(figname,' (N)');
     barelabel = figname;
-    dims = false; %true for dimensional forces/moments
+    dims = true; %true for dimensional forces/moments
     forces = true;
     volume = 0.0757; %vehicle volume m^3
     %length = 1.287; %length in m
@@ -269,7 +247,9 @@ end
 %%
 %Force polar plots. Heading as theta, force as radius. Plot different
 %speed on same polar plot. New plot for each steering angle
-close all
+if debug
+    close all
+end
 for ind = 1:6
     figname = vars{ind};
     f5 = figure("Name",strcat(figname,' Polar Heading & Speed'));
@@ -348,4 +328,28 @@ for ind = 1:2
     label = strcat(figname,' (N, Nm)');
     barelabel = figname;
     arcStackedForceFigureMaker(Arc,ind,label,barelabel,vars);
+end
+
+%%
+%Stacked horizontal bar comparison chart
+if debug
+    close all
+end
+%Each loop creates a new stacked area chart
+%1 = body forces/moments
+%2 - Wheel forces/moments
+for ind = 1:2
+    if ind == 1
+        figname = 'Body Forces/Moments';
+    elseif ind == 2
+        figname = 'Wheel Forces/Moments';
+    else
+        fprintf("Error Ocurred\n");
+        break;
+    end
+    volume = 0.0757; %vehicle volume m^3
+    f1 = figure("Name",strcat(figname,' v Heading'));
+    label = strcat(figname,' (N, Nm)');
+    barelabel = figname;
+    arcForceComparisonFigureMaker(Arc,ind,label,barelabel,vars,volume);
 end

@@ -18,7 +18,7 @@ lvls = 4;
 %how many points to use for zero level
 zStep = 100;
 %ALIM, limits of polar plot angle
-aLim = [-22.5,190];
+aLim = [-22.5,180];
 %ASTEP, steps for polar plot angle
 aStep = 22.5;
 
@@ -77,9 +77,9 @@ if dimensional
             subplotCounter = subplotCounter + 1;
             fig1 = figure;
             ph = makePolarGrid('Adir','cw','AZeroPos','top','ALim',aLim,...
-                    'ATicks',0:aStep:aLim(2),'AMinorTicks',aStep,'RUnits',RUnits,...
+                    'ATicks',0:aStep:aLim(2),'AMinorTicks',5*aStep,'RUnits',RUnits,...
                     'RLim',[(rmin+abs(rmin)), (rmax+abs(rmin))],...
-                    'RTicks',step,'RLabelFormat','%.1f','RLabelAngle',aLim(1)-9.5);
+                    'RTicks',step,'RLabelFormat','%.1f','RLabelAngle',aLim(1)-aStep);
             for s = 1:length(ph.RLabels)-1
                 if s == lvls
                     temp = str2double(ph.RLabels(s+1).String(1:4))-abs(rmin);
@@ -236,7 +236,7 @@ function updateTransparency(contourObj)
         contourFillObjs(i).ColorType = 'truecoloralpha';
         % The 4th element is the 'alpha' value. First 3 are RGB. Note, the
         % values expected are in range 0-255.
-        contourFillObjs(i).ColorData(4) = 50;
+        contourFillObjs(i).ColorData(4) = 40;
     end
 end
 
