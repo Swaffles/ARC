@@ -1,4 +1,4 @@
-function arcPolarFigureMaker(data,index,label,barelabel,dimensional,forces,length_Scale,figureHandle)
+function arcPolarFigureMaker(data,index,barelabel,dimensional,forces,figureHandle)
 %Inputs:
 %ARC: data set containing all the necessary data for plotting
 %index: Radius item
@@ -18,14 +18,22 @@ lvls = 4;
 %how many points to use for zero level
 zStep = 100;
 %ALIM, limits of polar plot angle
-aLim = [-22.5,180];
+aLim = [0,180];
 %ASTEP, steps for polar plot angle
 aStep = 22.5;
 
+%coloring
+BACK1 = [100/255 143/255 255/255]; %background negative
+BACK2 = [255/255 176/255 0/255]; %background positive
+
+BLUE = [120/255 94/255 240/255]; %IBM purple
+RED = [220/255 38/255 127/255]; %IBM red
+ORANGE = [254/255 97/255 0/255]; %IBM orange
+
 if forces
-    RUnits = 'N';
+    RUnits = '[N]';
 else
-   RUnits = 'Nm';
+   RUnits = '[Nm]';
 end
 
 %number of items to loop over
@@ -44,8 +52,8 @@ yData.Properties.VariableNames = [barelabel,"Water Depth","Heading",...
     "Steering","Flow Speed",'Target Flow Speed','h/D'];
 if dimensional
     %use tiles for water depth  
-    m = unique(yData{:,7}); %number of unique water depths (max 4)
-    n = unique(yData{:,4}); %number of unique steering angles (3)
+    m = unique(yData{:,"h/D"}); %number of unique water depths (max 4)
+    n = unique(yData{:,"Steering"}); %number of unique steering angles (3)
     counter = 1;
     subplotCounter = 1;
     tile = tiledlayout(length(m),length(n)); %4x3 layout
@@ -56,15 +64,16 @@ if dimensional
     
     for i = 1:length(m)
         %Water depth loop
-        indm = yData{:,7}==m(i);
+        indm = yData{:,"h/D"}==m(i);
         yData1{i} = yData(indm,:); %yData1 sorts water depth
-        n = unique(yData1{i}{:,4});
+        n = unique(yData1{i}{:,"Steering"});
+        n = sort(n,'descend');
         yData2{1,length(n)} = [];
         for j = 1:length(n)
             %steering loop
-            indn = yData1{i}{:,4}==n(j);
+            indn = yData1{i}{:,"Steering"}==n(j);
             yData2{j} = yData1{i}(indn,:);
-            q = unique(yData2{j}{:,6});
+            q = unique(yData2{j}{:,"Target Flow Speed"});
             rmin = round(min(yData2{j}{:,1}))-1;
             rmax = round(max(yData2{j}{:,1}))+1;
             if rmax<0
@@ -77,9 +86,9 @@ if dimensional
             subplotCounter = subplotCounter + 1;
             fig1 = figure;
             ph = makePolarGrid('Adir','cw','AZeroPos','top','ALim',aLim,...
-                    'ATicks',0:aStep:aLim(2),'AMinorTicks',5*aStep,'RUnits',RUnits,...
+                    'ATicks',aLim(1):2*aStep:aLim(2),'AMinorTicks',aStep,'RUnits',RUnits,...
                     'RLim',[(rmin+abs(rmin)), (rmax+abs(rmin))],...
-                    'RTicks',step,'RLabelFormat','%.1f','RLabelAngle',aLim(1)-aStep);
+                    'RTicks',step,'RLabelFormat','%.1f','RLabelAngle',aStep);
             for s = 1:length(ph.RLabels)-1
                 if s == lvls
                     temp = str2double(ph.RLabels(s+1).String(1:4))-abs(rmin);
@@ -94,30 +103,30 @@ if dimensional
             end
             for k = 1:length(q)
                 %speed
-                indq = yData2{j}{:,6}==q(k);
+                indq = yData2{j}{:,"Target Flow Speed"}==q(k);
                 yData3{counter} = yData2{j}(indq,:);
                 %sort by heading, increasing from 0 - 180
                 yData3{counter} = sortrows(yData3{counter},'Heading');
                 if yData3{counter}{1,6}==q(1)
                     [px,py] = polgrid2cart(yData3{counter}{:,3},yData3{counter}{:,1},ph);
-                    p1 = plot(px,py,'r','Marker','o','LineWidth',1.5,...
-                        'DisplayName',strcat('Target Speed= ',string(yData3{counter}{1,6}),' m/s')); 
+                    p1 = plot(px,py,'Color',RED,'Marker','o','MarkerSize',8,'MarkerFaceColor',RED,...
+                        'LineWidth',1.5,'DisplayName',strcat({'Target Speed= '},string(yData3{counter}{1,6}),{' m/s'})); 
                     clear px py
                     hold on
                 elseif yData3{counter}{1,6}==q(2)
                     [px,py] = polgrid2cart(yData3{counter}{:,3},yData3{counter}{:,1},ph);
-                    p2 = plot(px,py,'g','Marker','diamond','LineWidth',1.5,...
-                        'DisplayName',strcat('Target Speed= ',string(yData3{counter}{1,6}),' m/s')); 
+                    p2 = plot(px,py,'Color',ORANGE,'Marker','square','MarkerSize',8,'MarkerFaceColor',ORANGE,...
+                        'LineWidth',1.5,'DisplayName',strcat({'Target Speed= '},string(yData3{counter}{1,6}),{' m/s'})); 
                     clear px py
                 elseif yData3{counter}{1,6}==q(3)
                     [px,py] = polgrid2cart(yData3{counter}{:,3},yData3{counter}{:,1},ph);
-                    p3 = plot(px,py,'b','Marker','*','LineWidth',1.5,...
-                        'DisplayName',strcat('Target Speed= ',string(yData3{counter}{1,6}),' m/s')); 
+                    p3 = plot(px,py,'Color',BLUE,'Marker','^','MarkerSize',8,'MarkerFaceColor',BLUE,...
+                        'LineWidth',1.5,'DisplayName',strcat({'Target Speed= '},string(yData3{counter}{1,6}),{' m/s'})); 
                     clear px py
                 else
                     [px,py] = polgrid2cart(yData3{counter}{:,3},yData3{counter}{:,1},ph);
                     p4 = plot(px,py,'k','Marker','^','LineWidth',1.5,...
-                        'DisplayName',strcat('Target Speed= ',string(yData3{counter}{1,6}),' m/s')); 
+                        'DisplayName',strcat({'Target Speed= '},string(yData3{counter}{1,6}),{' m/s'})); 
                     clear px py
                 end
                 counter = counter+1;
@@ -127,12 +136,13 @@ if dimensional
                 theta = linspace(aLim(1),aLim(2),zStep);
                 zerolvl = zeros(1,zStep)+abs(rmin);
                 [px,py] = polgrid2cart(theta,zerolvl,ph);
-                plot(px,py,'k:','HandleVisibility','off','LineWidth',3); clear px py
+                pz = plot(px,py,'k:','HandleVisibility','off','LineWidth',4); clear px py
+                uistack(pz,'bottom');
                 %contour plot for dividing positive and negative regions
                 [mt,mr]=meshgrid(theta,[0 abs(rmin) abs(rmin)+0.01 abs(rmax)+abs(rmin)]);
                 [px,py] = polgrid2cart(mt,mr,ph);
                 [~,hc] = contourf(px,py,mr,[0 abs(rmin) inf]);
-                colormap([0 0 1;1 0 0]);
+                colormap([BACK1;BACK2]);
                 uistack(hc,'bottom');
                 hc.LineStyle = 'none';
                 eventFcn = @(srcObj, e) updateTransparency(srcObj);
@@ -141,25 +151,25 @@ if dimensional
                 %contour plot for positive only
                 [mt,mr]=meshgrid(theta,[0 abs(rmin) abs(rmin)+0.01 abs(rmax)+abs(rmin)]);
                 [px,py] = polgrid2cart(mt,mr,ph);
-                [~,hc] = contourf(px,py,mr,[0 abs(rmin) inf]); %[0 abs(rmin) inf]
-                colormap([1 0 0]); %colormap([0 0 1;1 0 0]);
+                [~,hc] = contourf(px,py,mr,[0 abs(rmin) inf]);
+                colormap(BACK2);
                 uistack(hc,'bottom');
                 hc.LineStyle = 'none';
                 eventFcn = @(srcObj, e) updateTransparency(srcObj);
                 addlistener(hc, 'MarkedClean', eventFcn);
             else
                 %contour plot for negative only
-                [mt,mr]=meshgrid(theta,[0 abs(rmin)-abs(rmax)]); %abs(rmin)+0.01 abs(rmax)+abs(rmin)
+                [mt,mr]=meshgrid(theta,[0 abs(rmin)-abs(rmax)]);
                 [px,py] = polgrid2cart(mt,mr,ph);
-                %hc = area(theta,py);
-                [~,hc] = contourf(px,py,mr,[0 abs(rmin) inf]); %[0 abs(rmin) inf]
-                colormap([0 0 1]); %colormap([0 0 1;1 0 0]);
+                [~,hc] = contourf(px,py,mr,[0 abs(rmin) inf]); 
+                colormap(BACK1);
                 uistack(hc,'bottom');
                 hc.LineStyle = 'none';
                 eventFcn = @(srcObj, e) updateTransparency(srcObj);
                 addlistener(hc, 'MarkedClean', eventFcn);
             end
-            title(strcat(barelabel,' for h/d= ',string(yData3{counter-1}{1,7}),' and steering= ',string(yData3{counter-1}{1,4})));
+            title(strcat(barelabel,{' for h/d= '},string(yData3{counter-1}{1,7}),...
+                {' and steering= '},string(yData3{counter-1}{1,4})));
 
             %legend handeling
             if exist('p1') && exist('p2') && exist('p3') && exist('p4')
@@ -173,15 +183,21 @@ if dimensional
             end
             hold off
             clear p4 %this is used ONLY to compare for old data 12-13-22
+            %save figure
+            figName = strcat(barelabel,{'_h_d'},string(yData3{counter-1}{1,7}),...
+                {'_steering'},string(yData3{counter-1}{1,4}));
+            figName = strrep(figName,'.','_');
+            print(figName,'-dpdf');
+
             %copy polar plot to tiledlayout
             if i==length(m) && j == length(n)
                  axcp = copyobj(gca,figureHandle,'legacy');
                  if rmin>0
-                    colormap(axcp,[1 0 0]); %red for positive
+                    colormap(axcp,BACK2); %white for positive
                  elseif rmax<0
-                     colormap(axcp,[0 0 1]); %blue for negative
+                     colormap(axcp,BACK1); %black for negative
                  else
-                     colormap(axcp,[0 0 1;1 0 0]);
+                     colormap(axcp,[BACK1;BACK2]);
                  end
                  eventFcn = @(srcObj, e) updateTransparency(srcObj);
                  hc = axcp.Children(end);
@@ -197,11 +213,11 @@ if dimensional
             else
                  axcp = copyobj(gca,figureHandle,'legacy');
                  if rmin>0
-                    colormap(axcp,[1 0 0]); %red for positive
+                    colormap(axcp,BACK2); %white for positive
                  elseif rmax<0
-                     colormap(axcp,[0 0 1]); %blue for negative
+                     colormap(axcp,BACK1); %black for negative
                  else
-                     colormap(axcp,[0 0 1;1 0 0]);
+                     colormap(axcp,[BACK1;BACK2]);
                  end
                  eventFcn = @(srcObj, e) updateTransparency(srcObj);
                  hc = axcp.Children(end);
@@ -236,7 +252,7 @@ function updateTransparency(contourObj)
         contourFillObjs(i).ColorType = 'truecoloralpha';
         % The 4th element is the 'alpha' value. First 3 are RGB. Note, the
         % values expected are in range 0-255.
-        contourFillObjs(i).ColorData(4) = 40;
+        contourFillObjs(i).ColorData(4) = 60;
     end
 end
 

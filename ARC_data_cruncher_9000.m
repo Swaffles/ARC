@@ -15,26 +15,29 @@ clearvars -except homePath dataPath programPath
 close all
 clc
 
-debug = true;
+debug = false;
 
 try 
     addpath(programPath)
 catch
-    programPath = uigetdir('Select GitHub Folder');
+    programPath = uigetdir(dir,'Select GitHub Folder');
     addpath(programPath);
 end
 try 
     addpath(dataPath)
 catch
-    dataPath = uigetdir('Select University of Iowa\ARC\Flume Experiment\Data');
+    dataPath = uigetdir(dir,'Select University of Iowa\ARC\Flume Experiment\Data');
 end
 
 try
     addpath(homePath)
+    cd(homePath)
 catch
-    homePath = uigetdir('Select University of Iowa (1)\ARC 2022');
+    homePath = uigetdir(dir,'Select University of Iowa (1)\ARC 2022');
     cd(homePath)
 end
+
+savePath = uigetdir(homePath,'Select Folder for Image file Saving');
 
 if ~isfile("HydroData.mat") || debug
     %if running for first time or if debug is on
@@ -167,7 +170,7 @@ if saveMe
     end
     save("HydroData.mat","Arc",'-v7.3');
 end
-clearvars -except Arc vars homePath dataPath programPath debug 
+clearvars -except Arc vars homePath dataPath programPath savePath debug 
 cd(programPath);
 
 %%
@@ -250,6 +253,7 @@ end
 if debug
     close all
 end
+cd(savePath);
 for ind = 1:6
     figname = vars{ind};
     f5 = figure("Name",strcat(figname,' Polar Heading & Speed'));
@@ -257,12 +261,13 @@ for ind = 1:6
     barelabel = figname;
     dims = true; %true for dimensional forces/moments
     forces = true;
-    volume = 0.0757; %vehicle volume m^3
+    %volume = 0.0757; %vehicle volume m^3
     if ind>3
         forces = false;
     end
-    arcPolarFigureMaker(Arc,ind,label,barelabel,dims,forces,volume,f5);
+    arcPolarFigureMaker(Arc,ind,barelabel,dims,forces,f5);
 end
+cd(programPath);
 
 %%
 %CF v Fr plots
@@ -315,6 +320,7 @@ end
 %Each loop creates a new stacked area chart
 %1 = body forces/moments
 %2 - Wheel forces/moments
+%cd(savePath);
 for ind = 1:2
     if ind == 1
         figname = 'Body Forces/Moments';
@@ -329,6 +335,7 @@ for ind = 1:2
     barelabel = figname;
     arcStackedForceFigureMaker(Arc,ind,label,barelabel,vars);
 end
+%cd(programPath);
 
 %%
 %Stacked horizontal bar comparison chart
@@ -338,6 +345,7 @@ end
 %Each loop creates a new stacked area chart
 %1 = body forces/moments
 %2 - Wheel forces/moments
+cd(savePath);
 for ind = 1:2
     if ind == 1
         figname = 'Body Forces/Moments';
@@ -353,3 +361,4 @@ for ind = 1:2
     barelabel = figname;
     arcForceComparisonFigureMaker(Arc,ind,label,barelabel,vars,volume);
 end
+cd(programPath);
