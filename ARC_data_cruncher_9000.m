@@ -20,20 +20,20 @@ debug = false;
 try 
     addpath(programPath)
 catch
-    programPath = uigetdir(dir,'Select GitHub Folder');
+    programPath = uigetdir(pwd,'Select GitHub Folder');
     addpath(programPath);
 end
 try 
     addpath(dataPath)
 catch
-    dataPath = uigetdir(dir,'Select University of Iowa\ARC\Flume Experiment\Data');
+    dataPath = uigetdir(pwd,'Select University of Iowa\ARC\Flume Experiment\Data');
 end
 
 try
     addpath(homePath)
     cd(homePath)
 catch
-    homePath = uigetdir(dir,'Select University of Iowa (1)\ARC 2022');
+    homePath = uigetdir(pwd,'Select University of Iowa (1)\ARC 2022');
     cd(homePath)
 end
 
@@ -284,7 +284,7 @@ for ind = 1:6
     forces = true; %changed automatically by program
     %function booleans%
     depthBased = true;
-    tiles = true;
+    tiles = false;
     excludeShallow = false;
     %function booleans%
     volume = 0.0757; %vehicle volume m^3
@@ -299,10 +299,10 @@ end
 if debug
     close all
 end
+cd(savePath);
 for ind = 1:6
     figname = vars{ind};
     f3 = figure("Name",strcat(figname,' Parallel Coordinates'));
-    label = strcat(figname,' (N)');
     barelabel = figname;
     dims = true; %true for dimensional forces/moments
     forces = true;
@@ -310,8 +310,9 @@ for ind = 1:6
     if ind>3
         forces = false;
     end
-    arcParallelCoordinatesFigureMaker(Arc,ind,label,barelabel,forces,volume);
+    arcParallelCoordinatesFigureMaker(Arc,ind,barelabel,forces,volume);
 end
+cd(programPath);
 %%
 %Stacked area force and moment charts
 if debug
@@ -356,8 +357,10 @@ for ind = 1:2
         break;
     end
     volume = 0.0757; %vehicle volume m^3
-    f1 = figure("Name",strcat(figname,' v Heading'));
-    label = strcat(figname,' (N, Nm)');
+    figHeight = 600;
+    figWidth = 1.618 *figHeight;
+    f1 = figure("Name",strcat(figname,' v Heading'),"Position",[50 50 figWidth figHeight]);
+    label = strcat(figname,{' (N, Nm)'});
     barelabel = figname;
     arcForceComparisonFigureMaker(Arc,ind,label,barelabel,vars,volume);
 end

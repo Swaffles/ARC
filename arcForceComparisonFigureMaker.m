@@ -146,8 +146,8 @@ fields = fieldnames(data);
         
         Forces2Plot(1:2,:) = [yData1{:,Force{indF}}';yData3{:,Force{indF}}'];
         %Forces2Plot = flip(Forces2Plot);
-        legendLabel(1,1:2) = [strcat({'h/D = '},string(Depth(indD)),{', Speed = '},string(uniqueSpeed1(indSpeed)),{' m/s'}),...
-                              strcat({'h/D = '},string(otherDepths(i)),{', Speed = '},string(uniqueSpeed2(indSpeed)),{' m/s'})];
+        legendLabel(1,1:2) = [strcat({'h/D = '},string(Depth(indD)),{', U = '},string(uniqueSpeed1(indSpeed)),{' m/s'}),...
+                              strcat({'h/D = '},string(otherDepths(i)),{', U = '},string(uniqueSpeed2(indSpeed)),{' m/s'})];
         barh(X,Forces2Plot,0.9);
         colororder(myColorMap);
         title(strcat({'h/D = '},string(Depth(indD)),{' V. h/D ='},string(otherDepths(i))));
@@ -167,5 +167,8 @@ fields = fieldnames(data);
         {', U = '},string(Speed(indS)),{' \delta = '},string(Steering(indST)));
     title(tile,tiledFigureTitle,"Interpreter","tex");
     
+    figName = strcat({'Depth Comparison for_'},Force{indF},...
+        {'_U_'},string(Speed(indS)),{'_Delta_'},string(Steering(indST)));
+    print(figName,'-dpdf');
    
 end
