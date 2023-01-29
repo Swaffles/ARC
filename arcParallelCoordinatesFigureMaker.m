@@ -41,15 +41,15 @@ fields = fieldnames(data);
             depth = yData{i,"Water Depth"}/100; %get target depth in m
             %displacement Fr
             speed = yData{i,"Flow Speed"};
-            FrD = speed/(sqrt(gravity*depth)); %real speed yData{i,5}
+            FrH = speed/(sqrt(gravity*depth)); %real speed yData{i,5}
             Sr = depth/(length_Scale^1/3);
             %depth Fr
-            FrH = speed/(sqrt(gravity*length_Scale^1/3));
+            FrD = speed/(sqrt(gravity*length_Scale^1/3));
             %scaling Fr
-            FrDSr = FrD*sqrt(Sr);
-            FrHSr = FrH/sqrt(Sr);
-            yData(i,8) = {round(FrDSr,2,"significant")};
-            yData(i,9) = {round(FrHSr,2,"significant")};
+            FrHSr = FrH*sqrt(Sr);
+            FrDSr = FrD/sqrt(Sr);
+            yData(i,8) = {round(FrHSr,2,"significant")};
+            yData(i,9) = {round(FrDSr,2,"significant")};
             yData(i,10) = {round(Sr,2,"decimals")};
             yData{i,1} = yData{i,1}/(0.5*rho*yData{i,5}^2*length_Scale^(2/3));
         end
@@ -75,7 +75,7 @@ fields = fieldnames(data);
     yData{:,1} = abs(yData{:,1});
     label = strcat('C',barelabel);
     yData.Properties.VariableNames = [label,"Water Depth","Heading",...
-    "Steering","Flow Speed",'Target Flow Speed','h/D','FrD','1/FrH','Sr'];
+    "Steering","Flow Speed",'Target Flow Speed','h/D','FrH','1/FrD','Sr'];
 
     %Collect data by steering
         M = unique(yData{:,"Steering"}); %unique
@@ -101,7 +101,7 @@ fields = fieldnames(data);
             yData2{i} = yData1(indm,:); %place current steering into next yData1 table
             nexttile;
             %make the plot
-            columns = [label,"Water Depth","Sr","FrD","Flow Speed","h/D"];
+            columns = [label,"Water Depth","Sr","FrH","Flow Speed","h/D"];
             yData3 = yData2{i}(:,columns);
             yData3 = sortrows(yData3,{'Water Depth'},{'ascend'});
             coordinateDataLabels = yData3.Properties.VariableNames(1:end-1);
@@ -115,12 +115,13 @@ fields = fieldnames(data);
             else
                 headingLabel = temp;
             end
-            title(strcat({'Steering= '},string(yData2{i}{1,"Steering"})));
+            p.LegendTitle = strcat({'h/D for'},{sprintf('\n')},{'steering = '},string(yData2{i}{1,"Steering"}));
+            %title(strcat({'Steering= '},string(yData2{i}{1,"Steering"})));
         end %end depth for loop 
-        title(tile,strcat({'Parallel Plots '},label,{sprintf('\n')},{'Heading(s)= '},headingLabel));
-        
-        figHeadingLabel = strrep(headingLabel,',','_');
-        figName = strcat({'ParallelPlot_'},label,{'Heading(s)= '},figHeadingLabel);
-        print(figName,'-dpdf');
+        title(tile,strcat({'Parallel Plots '},label));
+        tile.Subtitle.String = strcat({'Heading(s)= '},headingLabel);
+        %figHeadingLabel = strrep(headingLabel,',','_');
+        %figName = strcat({'ParallelPlot_'},label,{'Heading(s)= '},figHeadingLabel);
+        %print(figName,'-dpdf');
 
 end %end function

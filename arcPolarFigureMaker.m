@@ -187,6 +187,8 @@ if dimensional
             figName = strcat(barelabel,{'_h_d'},string(yData3{counter-1}{1,7}),...
                 {'_steering'},string(yData3{counter-1}{1,4}));
             figName = strrep(figName,'.','_');
+            savefig(figName);
+            print(figName,'-dmeta');
             print(figName,'-dpdf');
 
             %copy polar plot to tiledlayout

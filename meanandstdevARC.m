@@ -12,7 +12,7 @@ function myTable = meanandstdevARC(dataTable,testMatrix,dataFileName,buoyantTabl
     testMatrixIndex = find(strcmp(dataFileName,testMatrix.TrialName));
     if isnumeric(buoyantTable)
         fprintf("No Buoyant force offset");
-        buoyantCorrection = table(zeros(12,1),zeros(12,1));
+        buoyantCorrection = table(zeros(19,1),zeros(19,1));
     else
         %get H/D from table
         buoyantTableFields = fieldnames(buoyantTable);
@@ -37,7 +37,8 @@ function myTable = meanandstdevARC(dataTable,testMatrix,dataFileName,buoyantTabl
 
     if debug
         fprintf("Building myTable for %s\n", dataFileName);
-        fprintf("Using data from row %0.f of test matrix, corresponding to %s\n",testMatrixIndex,testMatrix.TrialName(testMatrixIndex));
+        fprintf("Using data from row %0.f of test matrix, corresponding to %s\n",...
+                testMatrixIndex,testMatrix.TrialName(testMatrixIndex));
     end
     vars = fieldnames(dataTable);
     vars = vars(2:end-3); %drop last three table intrinsic properties
@@ -45,9 +46,9 @@ function myTable = meanandstdevARC(dataTable,testMatrix,dataFileName,buoyantTabl
     vars(end-1:end) = ["Target Water Speed", "H/D"];
     vars = strrep(vars,'_','-');
     sz = length(vars);
-    varNames = ["Quantity","Mean","Mean OG","STDDEV","Units"];
-    varTypes = ["string","double","double","double","string"];
-    myTable = table('Size',[sz,5],'VariableTypes',varTypes,'VariableNames',varNames);
+    varNames = ["Quantity","Mean","Mean Dynamic","Mean Buoyancy","STDDEV","Units"];
+    varTypes = ["string","double","double","double","double","string"];
+    myTable = table('Size',[sz,6],'VariableTypes',varTypes,'VariableNames',varNames);
     myTable{:,end} = units;
 
     %body forces and moments
@@ -58,7 +59,9 @@ function myTable = meanandstdevARC(dataTable,testMatrix,dataFileName,buoyantTabl
         meanBodyForce = mean(dataTable{:,[vars(1:6)]},1,'omitnan');
     end
     stdBodyForce = std(dataTable{:,[vars(1:6)]},1,'omitnan');
-    myTable{1:6,["Quantity","Mean","Mean OG","STDDEV"]} = [vars(1:6),meanBodyForce',(meanBodyForce-buoyantCorrection{1:6,2}')',stdBodyForce'];
+    myTable{1:6,["Quantity","Mean","Mean Dynamic","Mean Buoyancy","STDDEV"]} =...
+           [vars(1:6),meanBodyForce',(meanBodyForce-buoyantCorrection{1:6,2}')',...
+            buoyantCorrection{1:6,2},stdBodyForce'];
     %wheel forces and moments
     tempMean = mean(dataTable{:,[vars(7:12)]},1,'omitnan');
     tempStd = std(dataTable{:,[vars(7:12)]},1,'omitnan');
@@ -80,14 +83,23 @@ function myTable = meanandstdevARC(dataTable,testMatrix,dataFileName,buoyantTabl
         meanWheelForce = tempMean;
     end
     stdWheelForce = tempStd;
-    myTable{7:12,["Quantity","Mean","Mean OG","STDDEV"]} = [vars(7:12),meanWheelForce',(meanWheelForce-buoyantCorrection{7:12,2}')',stdWheelForce'];
+    myTable{7:12,["Quantity","Mean","Mean Dynamic","Mean Buoyancy","STDDEV"]} =...
+           [vars(7:12),meanWheelForce',(meanWheelForce-buoyantCorrection{7:12,2}')',...
+            buoyantCorrection{7:12,2},stdWheelForce'];
     clear tempMean tempStd
     %water depth and port steering angle
     meanWaterDepth = mean(dataTable.WaterDepth,'omitnan');
     stdWaterDepth = std(dataTable.WaterDepth,'omitnan');
     meanSteeringAngle = mean(dataTable.PortSteeringAngle,'omitnan');
     stdSteeringAngle = std(dataTable.PortSteeringAngle,'omitnan');
-    myTable{13:14,["Quantity","Mean","Mean OG","STDDEV"]} = [vars(13:14),[meanWaterDepth;meanSteeringAngle],[meanWaterDepth;meanSteeringAngle],[stdWaterDepth;stdSteeringAngle]];
+    try
+        meanBuoyantWaterDepth = buoyantCorrection{13,2};
+    catch
+        meanBuoyantWaterDepth = meanWaterDepth;
+    end
+    myTable{13:14,["Quantity","Mean","Mean Dynamic","Mean Buoyancy","STDDEV"]} =...
+           [vars(13:14),[meanWaterDepth;meanSteeringAngle],[meanWaterDepth;meanSteeringAngle],...
+           [meanBuoyantWaterDepth;meanSteeringAngle],[stdWaterDepth;stdSteeringAngle]];
     n = 15;
     for i=1:length(testMatrixVars)
         if i == 3
@@ -96,12 +108,19 @@ function myTable = meanandstdevARC(dataTable,testMatrix,dataFileName,buoyantTabl
             temp(2) = testMatrix.Flow_U_end(testMatrixIndex);
             %stddev by difference between start and end speed
             absDiff = abs(temp(1)-temp(2));
-            myTable(n,:) = {vars{n},mean(temp),mean(temp),absDiff,units{n}};
+            myTable(n,:) = {vars{n},mean(temp),mean(temp),0,absDiff,units{n}};
         else
-            myTable(n,:) = {vars{n},testMatrix.(testMatrixVars{i})(testMatrixIndex),testMatrix.(testMatrixVars{i})(testMatrixIndex),0,units{n}};
+            myTable(n,:) = {vars{n},testMatrix.(testMatrixVars{i})(testMatrixIndex),...
+                            testMatrix.(testMatrixVars{i})(testMatrixIndex),0,0,units{n}};
         end
         n = n+1;
     end
+    try
+        myTable{end,4} = buoyantCorrection{end,2};
+    catch
+        fprintf("Error assigning H/D!\n");
+    end
+
     clear temp
     return
 end

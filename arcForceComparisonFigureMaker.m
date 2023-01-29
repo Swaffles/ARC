@@ -1,4 +1,4 @@
-function arcForceComparisonFigureMaker(data,index,label,barelabel,vars,length_Scale)
+function arcForceComparisonFigureMaker(data,index,makeTiles,label,barelabel,vars,length_Scale)
 %Inputs:
 %ARC: data set containing all the necessary data for plotting
 %index: Y-axis items
@@ -104,71 +104,148 @@ fields = fieldnames(data);
         fprintf("No selection made, exiting function");
         return;
     end
-    tile = tiledlayout(1,3); %1x3 layout
-    myColorMap = [26/255 133/255 255/255;...
-                   212/255 17/255 89/255]; %Accessible color palette   
-    indx = yData{:,"h/D"} == Depth(indD); 
-    yData1 = yData(indx,:); %data held constant
-    %find the unique target flow speeds for this depth. The value in
-    %position 1 will be the slowest and correspond with indS = 1 (Slow), the value
-    %in position 3 will be quickest and correspond with indS = 3 (Fast)
-    uniqueSpeed1 = unique(yData1{:,"Target Flow Speed"});
-    indx = yData1{:,"Target Flow Speed"} == uniqueSpeed1(indSpeed);
-    yData1 = yData1(indx,:);
-    %steering
-    indx = yData1{:,"Steering"} == Steering(indST);
-    yData1 = yData1(indx,:);
-    X = categorical(unique(yData1{:,"Heading"}));
-    %other depths data
-    indx = yData{:,"Steering"} == Steering(indST);
-    yData2 = yData(indx,:);
-    temp = unique(yData1{:,"Heading"});
-    for h=1:length(temp)
-        indx = yData2{:,"Heading"} == temp(h);
-        if h == 1
-            indH = indx;
-        else
-            indH = indH | indx;
+    if makeTiles
+        tile = tiledlayout(3,1); %3x1 layout
+        yData1Color = [26/255 133/255 255/255]; %Compare color (blue)
+        yData3Color = [212/255 17/255 89/255;...
+                       255/255 194/255 10/255;...
+                       230/255 97/255 0/255]; %Accessible color palette   
+        indx = yData{:,"h/D"} == Depth(indD); 
+        yData1 = yData(indx,:); %data held constant
+        %find the unique target flow speeds for this depth. The value in
+        %position 1 will be the slowest and correspond with indS = 1 (Slow), the value
+        %in position 3 will be quickest and correspond with indS = 3 (Fast)
+        uniqueSpeed1 = unique(yData1{:,"Target Flow Speed"});
+        indx = yData1{:,"Target Flow Speed"} == uniqueSpeed1(indSpeed);
+        yData1 = yData1(indx,:);
+        %steering
+        indx = yData1{:,"Steering"} == Steering(indST);
+        yData1 = yData1(indx,:);
+        X = categorical(unique(yData1{:,"Heading"}));
+        yData1 = sortrows(yData1,"Heading");
+        %other depths data
+        indx = yData{:,"Steering"} == Steering(indST);
+        yData2 = yData(indx,:);
+        temp = unique(yData1{:,"Heading"});
+        for h=1:length(temp)
+            indx = yData2{:,"Heading"} == temp(h);
+            if h == 1
+                indH = indx;
+            else
+                indH = indH | indx;
+            end
         end
-    end
-    yData2 = yData2(indH,:);
-    indx = Depth ~= Depth(indD);  
-    otherDepths = Depth(indx);
-    for i=1:3
-        nexttile;
-        %first select the depth
-        indx = yData2{:,"h/D"} == otherDepths(i);
-        yData3 = yData2(indx,:); 
-        %now narrow down the speed
-        uniqueSpeed2 = unique(yData3{:,"Target Flow Speed"});
-        indx = yData3{:,"Target Flow Speed"} == uniqueSpeed2(indSpeed);
-        yData3 = yData3(indx,:);
+        yData2 = yData2(indH,:);
+        indx = Depth ~= Depth(indD);  
+        otherDepths = Depth(indx);
+        for i=1:3
+            ax = nexttile;
+            %first select the depth
+            indx = yData2{:,"h/D"} == otherDepths(i);
+            yData3 = yData2(indx,:); 
+            %now narrow down the speed
+            uniqueSpeed2 = unique(yData3{:,"Target Flow Speed"});
+            indx = yData3{:,"Target Flow Speed"} == uniqueSpeed2(indSpeed);
+            yData3 = yData3(indx,:);
+            yData3 = sortrows(yData3,"Heading");
+            
+            Forces2Plot(1:2,:) = [yData1{:,Force{indF}}';yData3{:,Force{indF}}'];
+            %Forces2Plot = flip(Forces2Plot);
+            legendLabel(1,1:2) = [strcat({'h/D = '},string(Depth(indD)),{', U = '},string(uniqueSpeed1(indSpeed)),{' m/s'}),...
+                                  strcat({'h/D = '},string(otherDepths(i)),{', U = '},string(uniqueSpeed2(indSpeed)),{' m/s'})];
+            bar(X,Forces2Plot,0.9);
+            colororder(ax,[yData1Color;yData3Color(i,:)]); %keeps comapred depth color constant, changes others according to color map
+            title(strcat({'h/D = '},string(Depth(indD)),{' V. h/D ='},string(otherDepths(i))));
+            if contains(Force{indF},'F')
+                unitLabel = 'N';
+            else
+                unitLabel = 'Nm';
+            end
+            xlabel("Heading (deg)");
+            ylabel(sprintf("Magnitude %s (%s)",Force{indF},unitLabel));
+            paddingMinus = abs(std(min(Forces2Plot),[],"all"));
+            paddingPlus = abs(std(max(Forces2Plot),[],"all"));
+            ylim([min(Forces2Plot,[],"all")-paddingMinus,...
+                  max(Forces2Plot,[],"all")+paddingPlus]);
+            legend(legendLabel,'Location','bestoutside');
+        end
+        tiledFigureTitle = strcat({'Depth Comparison for: '},Force{indF},...
+            {', U = '},string(Speed(indS)),{' \delta = '},string(Steering(indST)));
+        title(tile,tiledFigureTitle,"Interpreter","tex");
         
-        Forces2Plot(1:2,:) = [yData1{:,Force{indF}}';yData3{:,Force{indF}}'];
-        %Forces2Plot = flip(Forces2Plot);
-        legendLabel(1,1:2) = [strcat({'h/D = '},string(Depth(indD)),{', U = '},string(uniqueSpeed1(indSpeed)),{' m/s'}),...
-                              strcat({'h/D = '},string(otherDepths(i)),{', U = '},string(uniqueSpeed2(indSpeed)),{' m/s'})];
-        barh(X,Forces2Plot,0.9);
-        colororder(myColorMap);
-        title(strcat({'h/D = '},string(Depth(indD)),{' V. h/D ='},string(otherDepths(i))));
-        if contains(Force{indF},'F')
-            unitLabel = 'N';
-        else
-            unitLabel = 'Nm';
+        figName = strcat({'Depth Comparison for_'},Force{indF},...
+            {'_U_'},string(Speed(indS)),{'_Delta_'},string(Steering(indST)));
+        print(figName,'-dmeta');
+    else
+        myColorMap = [100/255 143/255 255/255;...
+                      220/255 38/255 127/255;...
+                      254/255 97/255 0/255;...
+                      255/255 176/255 0/255]; %IBM color map  
+        indx = yData{:,"h/D"} == Depth(indD); 
+        yData1 = yData(indx,:); %data held constant
+        %find the unique target flow speeds for this depth. The value in
+        %position 1 will be the slowest and correspond with indS = 1 (Slow), the value
+        %in position 3 will be quickest and correspond with indS = 3 (Fast)
+        uniqueSpeed1 = unique(yData1{:,"Target Flow Speed"});
+        indx = yData1{:,"Target Flow Speed"} == uniqueSpeed1(indSpeed);
+        yData1 = yData1(indx,:);
+        %steering
+        indx = yData1{:,"Steering"} == Steering(indST);
+        yData1 = yData1(indx,:);
+        X = categorical(unique(yData1{:,"Heading"}));
+        yData1 = sortrows(yData1,"Heading");
+        %other depths data
+        indx = yData{:,"Steering"} == Steering(indST);
+        yData2 = yData(indx,:);
+        temp = unique(yData1{:,"Heading"});
+        for h=1:length(temp)
+            indx = yData2{:,"Heading"} == temp(h);
+            if h == 1
+                indH = indx;
+            else
+                indH = indH | indx;
+            end
         end
-        xlabel(sprintf("Magnitude %s (%s)",Force{indF},unitLabel));
-        paddingMinus = abs(std(min(Forces2Plot),[],"all"));
-        paddingPlus = abs(std(max(Forces2Plot),[],"all"));
-        xlim([min(Forces2Plot,[],"all")-paddingMinus,...
-              max(Forces2Plot,[],"all")+paddingPlus]);
-        legend(legendLabel,'Location','northoutside');
+        yData2 = yData2(indH,:);
+        indx = Depth ~= Depth(indD);  
+        otherDepths = Depth(indx);
+        Forces2Plot(1,:) = yData1{:,Force{indF}}';
+        legendLabel(1,1) = strcat({'h/D = '},string(Depth(indD)),{', U = '},string(uniqueSpeed1(indSpeed)),{' m/s'});
+        for i=1:3
+            %first select the depth
+            indx = yData2{:,"h/D"} == otherDepths(i);
+            yData3 = yData2(indx,:); 
+            %now narrow down the speed
+            uniqueSpeed2 = unique(yData3{:,"Target Flow Speed"});
+            indx = yData3{:,"Target Flow Speed"} == uniqueSpeed2(indSpeed);
+            yData3 = yData3(indx,:);
+            yData3 = sortrows(yData3,"Heading");
+            
+            Forces2Plot(i+1,:) = yData3{:,Force{indF}}';
+            legendLabel(1,i+1) = strcat({'h/D = '},string(otherDepths(i)),{', U = '},string(uniqueSpeed2(indSpeed)),{' m/s'});
+        end
+            
+            bar(X,Forces2Plot,0.9);
+            colororder(myColorMap); %keeps comapred depth color constant, changes others according to color map
+            if contains(Force{indF},'F')
+                unitLabel = 'N';
+            else
+                unitLabel = 'Nm';
+            end
+            xlabel("Heading (deg)");
+            ylabel(sprintf("Magnitude %s (%s)",Force{indF},unitLabel));
+            paddingMinus = abs(std(min(Forces2Plot),[],"all"));
+            paddingPlus = abs(std(max(Forces2Plot),[],"all"));
+            ylim([min(Forces2Plot,[],"all")-paddingMinus,...
+                  max(Forces2Plot,[],"all")+paddingPlus]);
+            legend(legendLabel,'Location','bestoutside');
+        figureTitle = strcat({'Depth Comparison for: '},Force{indF},...
+            {', U = '},string(Speed(indS)),{' \delta = '},string(Steering(indST)));
+        title(figureTitle,"Interpreter","tex");
+        
+        figName = strcat({'NoTiles_Depth_Comparison'},Force{indF},...
+            {'_U_'},string(Speed(indS)),{'_Delta_'},string(Steering(indST)));
+        print(figName,'-dmeta');
     end
-    tiledFigureTitle = strcat({'Depth Comparison for: '},Force{indF},...
-        {', U = '},string(Speed(indS)),{' \delta = '},string(Steering(indST)));
-    title(tile,tiledFigureTitle,"Interpreter","tex");
-    
-    figName = strcat({'Depth Comparison for_'},Force{indF},...
-        {'_U_'},string(Speed(indS)),{'_Delta_'},string(Steering(indST)));
-    print(figName,'-dpdf');
    
 end

@@ -181,12 +181,13 @@ if debug
     close all
 end
 %Body Forces
+cd(savePath);
 for ind = 1:6
     figname = vars{ind};
-    f1 = figure("Name",strcat(figname,' v Heading'));
+    f1 = figure("Name",strcat(figname,' v Heading'),'units','normalized','OuterPosition',[0 0 1 1]); %makes full screen size
     label = strcat(figname,' (N)');
     barelabel = figname;
-    dims = true; %true for dimensional forces/moments
+    dims = false; %true for dimensional forces/moments
     forces = true;
     volume = 0.0757; %vehicle volume m^3
     %length = 1.287; %length in m
@@ -195,7 +196,7 @@ for ind = 1:6
     end
     arcForceFigureMaker(Arc,ind,label,barelabel,dims,forces,volume);
 end
-
+cd(programPath);
 %%
 %Wheel Forces
 for ind = 7:12
@@ -302,7 +303,7 @@ end
 cd(savePath);
 for ind = 1:6
     figname = vars{ind};
-    f3 = figure("Name",strcat(figname,' Parallel Coordinates'));
+    f3 = figure("Name",strcat(figname,' Parallel Coordinates'),'units','normalized','OuterPosition',[0 0 1 1]); %makes full screen size
     barelabel = figname;
     dims = true; %true for dimensional forces/moments
     forces = true;
@@ -361,7 +362,8 @@ for ind = 1:2
     figWidth = 1.618 *figHeight;
     f1 = figure("Name",strcat(figname,' v Heading'),"Position",[50 50 figWidth figHeight]);
     label = strcat(figname,{' (N, Nm)'});
+    tiles = false;
     barelabel = figname;
-    arcForceComparisonFigureMaker(Arc,ind,label,barelabel,vars,volume);
+    arcForceComparisonFigureMaker(Arc,ind,tiles,label,barelabel,vars,volume);
 end
 cd(programPath);

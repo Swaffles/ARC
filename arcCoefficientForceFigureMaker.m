@@ -44,14 +44,14 @@ end
     if forces
         for i=1:height(yData)
             %depth
-            depth = yData{i,2}/100; %get target depth in m
-            if ~depthBased
-                %displacement Fr
-                Fr = yData{i,6}/(sqrt(gravity*depth)); %real speed yData{i,5}
+            depth = yData{i,"Water Depth"}/100; %get target depth in m
+            if depthBased
+                %depth Fr
+                Fr = yData{i,"Flow Speed"}/(sqrt(gravity*depth)); %real speed yData{i,5}
                 Sr = depth/(length_Scale^1/3);
             else
-                %depth Fr
-                Fr = yData{i,6}/(sqrt(gravity*length_Scale^1/3));
+                %displacement Fr
+                Fr = yData{i,"Flow Speed"}/(sqrt(gravity*length_Scale^1/3));
                 Sr = (length_Scale^1/3)/depth;
             end
             %scaling Fr
@@ -63,14 +63,14 @@ end
     else
         for i=1:height(yData)
             %depth
-            depth = yData{i,2}/100; %get target depth in m
+            depth = yData{i,"Water Depth"}/100; %get target depth in m
             if ~depthBased
                 %displacement Fr
-                Fr = yData{i,6}/(sqrt(gravity*depth)); %real speed yData{i,5}
+                Fr = yData{i,"Flow Speed"}/(sqrt(gravity*depth)); %real speed yData{i,5}
                 Sr = depth/(length_Scale^1/3);
             else
                 %depth Fr
-                Fr = yData{i,6}/(sqrt(gravity*length_Scale^1/3));
+                Fr = yData{i,"Flow Speed"}/(sqrt(gravity*length_Scale^1/3));
                 Sr = (length_Scale^1/3)/depth;
             end
             %scaling Fr
@@ -86,48 +86,56 @@ end
   
     %Collect data by heading to graph
     if makeTiles
-        tile = tiledlayout(2,2);
-        L = unique(yData{:,7}); %unique depths
-        M = unique(yData{:,3}); %unique headings
+        tile = tiledlayout(1,3);
+        Steering = unique(yData{:,"Steering"}); %unique steering
+        M = unique(yData{:,"Heading"}); %unique headings
         lineColors = lines(length(M));
         counter = 1;
         lineColorsCounter = 0;
         yData1{1,4} = []; %cols == diff depth
-        for i = 1:length(L)
-            indL = yData{:,7} == L(i);
-            yData1{i} = yData(indL,:); %place current depth into next yData1 table
-            m = unique(yData1{i}{:,3}); %unique headings
+        for i = 1:length(Steering)
+            indST = yData{:,"Steering"} == Steering(i);
+            yData1{i} = yData(indST,:); %place current steering into next yData1 table
+            m = unique(yData1{i}{:,"Heading"}); %unique headings
             yData2{1,length(m)} = [];
             nexttile;
             for j = 1:length(m)
                 %heading
-                indm = yData1{i}{:,3} == m(j);
+                indm = yData1{i}{:,"Heading"} == m(j);
                 yData2{j} = yData1{i}(indm,:); %place current heading into new yData2 table
-                n = unique(yData2{j}{:,4}); %steering selection
+                n = unique(yData2{j}{:,"h/D"}); %depth selection
                 yData3{1,3} = [];
                 lineColorsCounter = lineColorsCounter+1; %increment line color for new heading
                 for k=1:length(n)
-                    %steering
-                    indn = yData2{j}{:,4} == n(k);
-                    yData3{counter} = yData2{j}(indn,:); %place current steering angle into new yData3 table 
+                    %depth
+                    indn = yData2{j}{:,"h/D"} == n(k);
+                    yData3{counter} = yData2{j}(indn,:); %place current depth into new yData3 table 
                     yData3{counter} = sortrows(yData3{counter},'Fr');
                     hold on
-                    if yData3{counter}{1,4} == 0 
-                    plot(yData3{counter},'Fr',barelabel,'LineStyle','-','Marker','o','Color',lineColors(lineColorsCounter,:),...
-                        'DisplayName',strcat("Heading= ",string(yData3{counter}{1,3}),"deg"," Steering= ",string(yData3{counter}{1,4}),'deg'));
-                    elseif yData3{counter}{1,4} > 0
-                        plot(yData3{counter},'Fr',barelabel,'LineStyle','-','Marker','<','Color',lineColors(lineColorsCounter,:),...
-                            'DisplayName',strcat("Heading= ",string(yData3{counter}{1,3}),"deg"," Steering= ",string(yData3{counter}{1,4}),'deg'));
+                    if n(k) == n(1)
+                    plot(yData3{counter},'Fr',barelabel,'LineStyle','-','Marker','.','Color',lineColors(lineColorsCounter,:),...
+                        'DisplayName',strcat({'Heading= '},string(yData3{counter}{1,"Heading"}),...
+                                             "deg",{', h/D= '},string(yData3{counter}{1,"h/D"})));
+                    elseif n(k) == n(2)
+                        plot(yData3{counter},'Fr',barelabel,'LineStyle','--','Marker','.','Color',lineColors(lineColorsCounter,:),...
+                        'DisplayName',strcat({'Heading= '},string(yData3{counter}{1,"Heading"}),...
+                                             "deg",{', h/D= '},string(yData3{counter}{1,"h/D"})));
+                    elseif n(k) == n(3)
+                        plot(yData3{counter},'Fr',barelabel,'LineStyle',':','Marker','.','Color',lineColors(lineColorsCounter,:),...
+                        'DisplayName',strcat({'Heading= '},string(yData3{counter}{1,"Heading"}),...
+                                             "deg",{', h/D= '},string(yData3{counter}{1,"h/D"})));
                     else
-                        plot(yData3{counter},'Fr',barelabel,'LineStyle','-','Marker','>','Color',lineColors(lineColorsCounter,:),...
-                            'DisplayName',strcat("Heading= ",string(yData3{counter}{1,3}),"deg"," Steering= ",string(yData3{counter}{1,4}),'deg'));
+                        plot(yData3{counter},'Fr',barelabel,'LineStyle','-.','Marker','.','Color',lineColors(lineColorsCounter,:),...
+                        'DisplayName',strcat({'Heading= '},string(yData3{counter}{1,"Heading"}),...
+                                             "deg",{', h/D= '},string(yData3{counter}{1,"h/D"})));
                     end
+                    
                     counter = counter+1;
                 end %end steering for loop
                 clear yData3
             end %end heading for loop
             clear yData2
-            title(strcat(Label,' V. Froude Number for h/D= ',string(yData1{i}{1,7})));
+            title(strcat(Label,{' V. Froude Number for Steering= '},string(yData1{i}{1,"Steering"})));
             if depthBased
                 xlabel("Froude Number based on Depth");
             else
@@ -138,24 +146,25 @@ end
             hold off
             lineColorsCounter = 0;
         end %end depth for loop
-        legend('Location','southoutside','NumColumns',length(M));
+        tiledLegend = legend('NumColumns',length(M));
+        tiledLegend.Layout.Tile = 'south';
         
     else
-        m = unique(yData{:,3}); %unique headings
+        m = unique(yData{:,"Heading"}); %unique headings
         lineColors = lines(length(m));
         counter = 1;
         lineColorsCounter = 0;
         yData1{1,length(m)}=[];
         for i = 1:length(m)
             %heading
-            indm = yData{:,3} == m(i);
+            indm = yData{:,"Heading"} == m(i);
             yData1{i} = yData(indm,:);
-            n = unique(yData1{i}{:,4}); %steering selection
+            n = unique(yData1{i}{:,"Steering"}); %steering selection
             yData2{1,3} = [];
             lineColorsCounter = lineColorsCounter+1;
             for j = 1:length(n)
                 %steering
-                indn = yData1{i}{:,4} == n(j);
+                indn = yData1{i}{:,"Steering"} == n(j);
                 yData2{counter} = yData1{i}(indn,:);
                 yData2{counter} = sortrows(yData2{counter},'Fr');
                 hold on
