@@ -97,33 +97,33 @@ fields = fieldnames(data);
             FrSr = Fr*sqrt(Sr);
             yData(i,8) = {round(FrSr,1,"significant")};
             yData(i,9) = {round(Sr,2,"decimals")};
+        
+            if forces
+                yData{i,1} = yData{i,barelabel}/(0.5*rho*yData{i,"Flow Speed"}^2*length_Scale^(2/3)*Sr^2); 
+            else
+                yData{i,1} = yData{i,barelabel}/(0.5*rho*yData{i,"Flow Speed"}^2*length_Scale*Sr^2);
+            end
         end
         if forces
-            for i=1:height(yData)
-                yData{i,1} = yData{i,barelabel}/(0.5*rho*yData{i,"Flow Speed"}^2*length_Scale^(2/3)*Sr);
-            end
-            label = strcat(barelabel,'/','$\frac{1}{2}*\rho*U^2*Vol^{2/3}*SR$');
-            if strcmp(barelabel,'Fx')
-                barelabel = 'CFx';
-            elseif strcmp(barelabel,'Fy')
-                barelabel = 'CFy';
-            else
-                barelabel = 'CFz';
-            end
+            label = strcat(barelabel,'/','$\frac{1}{2}*\rho*U^2*Vol^{2/3}*SR^2$');
+                if strcmp(barelabel,'Fx')
+                    barelabel = 'CFx';
+                elseif strcmp(barelabel,'Fy')
+                    barelabel = 'CFy';
+                else
+                    barelabel = 'CFz';
+                end
         else
-            for i=1:height(yData)
-                yData{i,1} = yData{i,barelabel}/(0.5*rho*yData{i,"Flow Speed"}^2*length_Scale*Sr);
-            end
-            label = strcat(barelabel,'/','$\frac{1}{2}*\rho*U^2*Vol*SR$');
-            if strcmp(barelabel,'Mx')
-                barelabel = 'CMx';
-            elseif strcmp(barelabel,'My')
-                barelabel = 'CMy';
-            else
-                barelabel = 'CMz';
-            end
+            label = strcat(barelabel,'/','$\frac{1}{2}*\rho*U^2*Vol*SR^2$');
+                if strcmp(barelabel,'Mx')
+                    barelabel = 'CMx';
+                elseif strcmp(barelabel,'My')
+                    barelabel = 'CMy';
+                else
+                    barelabel = 'CMz';
+                end
         end
-        
+
         yData.Properties.VariableNames = [barelabel,"Water Depth","Heading",...
         "Steering","Flow Speed",'Target Flow Speed','h/D','Fr','Sr'];
         tiles = tiledlayout(3,3); %9 total angles

@@ -109,18 +109,18 @@ if dimensional
                 yData3{counter} = sortrows(yData3{counter},'Heading');
                 if yData3{counter}{1,6}==q(1)
                     [px,py] = polgrid2cart(yData3{counter}{:,3},yData3{counter}{:,1},ph);
-                    p1 = plot(px,py,'Color',RED,'Marker','o','MarkerSize',8,'MarkerFaceColor',RED,...
+                    p1 = plot(px,py,'Color',BLUE,'Marker','o','MarkerSize',8,'MarkerFaceColor',BLUE,...
                         'LineWidth',1.5,'DisplayName',strcat({'Target Speed= '},string(yData3{counter}{1,6}),{' m/s'})); 
                     clear px py
                     hold on
                 elseif yData3{counter}{1,6}==q(2)
                     [px,py] = polgrid2cart(yData3{counter}{:,3},yData3{counter}{:,1},ph);
-                    p2 = plot(px,py,'Color',ORANGE,'Marker','square','MarkerSize',8,'MarkerFaceColor',ORANGE,...
+                    p2 = plot(px,py,'Color',RED,'Marker','square','MarkerSize',8,'MarkerFaceColor',RED,...
                         'LineWidth',1.5,'DisplayName',strcat({'Target Speed= '},string(yData3{counter}{1,6}),{' m/s'})); 
                     clear px py
                 elseif yData3{counter}{1,6}==q(3)
                     [px,py] = polgrid2cart(yData3{counter}{:,3},yData3{counter}{:,1},ph);
-                    p3 = plot(px,py,'Color',BLUE,'Marker','^','MarkerSize',8,'MarkerFaceColor',BLUE,...
+                    p3 = plot(px,py,'Color',ORANGE,'Marker','^','MarkerSize',8,'MarkerFaceColor',ORANGE,...
                         'LineWidth',1.5,'DisplayName',strcat({'Target Speed= '},string(yData3{counter}{1,6}),{' m/s'})); 
                     clear px py
                 else

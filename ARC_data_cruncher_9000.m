@@ -15,7 +15,7 @@ clearvars -except homePath dataPath programPath
 close all
 clc
 
-debug = false;
+debug = true;
 
 try 
     addpath(programPath)
@@ -104,7 +104,7 @@ if noData || length(dataFiles)>length(existingData)
         temp2 = strrep(temp,'_','-');
         b = renamevars(b,temp,temp2);
         B.(buoyantFileNames{i}) = meanandstdevARC(b,testMatrix,buoyantFileNames{i},-1,debug);
-        B.(buoyantFileNames{i}){[1,2,4,6,7,9],2} = 0; %zeroing values that are due to load cell drift
+        B.(buoyantFileNames{i}){[1,2,4,6,7,8,10,12],2} = 0; %zeroing values that are due to load cell drift
     end
 end
 
