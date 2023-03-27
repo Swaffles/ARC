@@ -11,7 +11,7 @@ function myTable = meanandstdevARC(dataTable,testMatrix,dataFileName,buoyantTabl
     %locate the trial in the test matrix incase missaligned
     testMatrixIndex = find(strcmp(dataFileName,testMatrix.TrialName));
     if isnumeric(buoyantTable)
-        fprintf("No Buoyant force offset");
+        fprintf("Calculating Buoyant force item\n");
         buoyantCorrection = table(zeros(19,1),zeros(19,1));
     else
         %get H/D from table

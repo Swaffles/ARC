@@ -11,6 +11,10 @@
 %OUTPUTS: Lookup table with mean, standard deviation, and hydrodynamic
 %coefficients for a ground vehicle opporating in shallow water.
 
+%note if you get a cell read error in meanandstdevARC it's because you have
+%included a data item to read that has not been read from the excel sheet
+%to the testMatrix table
+
 clearvars -except homePath dataPath programPath
 close all
 clc
@@ -60,7 +64,7 @@ testMatrixFile = dir('ARC Test Matrix Fall 2022.xlsx');
 opts = spreadsheetImportOptions("NumVariables", 15);
 
 opts.Sheet = "Sheet1";
-opts.DataRange = "A4:O336";
+opts.DataRange = "A4:O417"; %previously O336
 
 % Specify column names and types
 opts.VariableNames = ["TrialName", "WaterDepth", "h/D", "PumpDutyCycle",...
@@ -81,7 +85,7 @@ testMatrix = readtable(testMatrixFile.name,opts);
 cd (dataPath);
 dataFiles = dir('EF*');
 dataFileNames = {dataFiles.name};
-buoyantFiles = dir('B000*');
+buoyantFiles = dir('B*');
 buoyantFileNames = {buoyantFiles.name};
 %read buoyancy data into data table
 %only do this if there's no data or if there's new data
@@ -96,15 +100,13 @@ if noData || length(dataFiles)>length(existingData)
         % Specify file level properties
         opts.ExtraColumnsRule = "ignore";
         opts.EmptyLineRule = "read";
-        if debug
-            fprintf("Building buoyancy table entry for %s\n", buoyantFileNames{i});
-        end
+        fprintf("Building buoyancy table entry for %s\n", buoyantFileNames{i});
         b = readtable(buoyantFileNames{i},opts);
         temp = b.Properties.VariableNames;
         temp2 = strrep(temp,'_','-');
         b = renamevars(b,temp,temp2);
         B.(buoyantFileNames{i}) = meanandstdevARC(b,testMatrix,buoyantFileNames{i},-1,debug);
-        B.(buoyantFileNames{i}){[1,2,4,6,7,8,10,12],2} = 0; %zeroing values that are due to load cell drift
+        B.(buoyantFileNames{i}){[4,6,7,8,10,12],2} = 0; %zeroing values that are due to load cell drift
     end
 end
 
@@ -140,9 +142,7 @@ if length(dataFiles)>length(existingData)
                 % Specify file level properties
                 opts.ExtraColumnsRule = "ignore";
                 opts.EmptyLineRule = "read";
-                if debug
-                    fprintf("Building data table entry for %s\n", dataFileNames{ind});
-                end
+                fprintf("Building data table entry for %s\n", dataFileNames{ind});
                 T = readtable(dataFileNames{ind},opts);
                 temp = T.Properties.VariableNames;
                 temp2 = strrep(temp,'_','-');
@@ -157,6 +157,7 @@ else
     fprintf("No new files\n");
     saveMe = false;
 end
+
 
 %%
 %Saving
@@ -187,7 +188,7 @@ for ind = 1:6
     f1 = figure("Name",strcat(figname,' v Heading'),'units','normalized','OuterPosition',[0 0 1 1]); %makes full screen size
     label = strcat(figname,' (N)');
     barelabel = figname;
-    dims = false; %true for dimensional forces/moments
+    dims = true; %true for dimensional forces/moments
     forces = true;
     volume = 0.0757; %vehicle volume m^3
     %length = 1.287; %length in m
