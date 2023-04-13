@@ -25,19 +25,20 @@ fields = fieldnames(data);
         yData(i,5) = {temp};
         yData(i,6) = data.(fields{i})(18,2); %target flow speed
         yData(i,7) = data.(fields{i})(19,2); %h/D
+        yData(i,8) = {0}; %this will be where standard deviation gets put in
     end
     yData.Properties.VariableNames = [barelabel,"Water Depth","Heading",...
-        "Steering","Flow Speed",'Target Flow Speed','h/D'];
+        "Steering","Flow Speed",'Target Flow Speed','h/D','Stdev'];
     if dimensional
         %use tiles for water depth 
-        Headings = unique(yData{:,"h/D"});
+        depth = unique(yData{:,"h/D"});
         tile = tiledlayout(2,2); %2x2 layout
         counter = 1;
         colCounter = 0;
         yData1{1,4} = [];
-        for i = 1:length(Headings)
+        for i = 1:length(depth)
             %depth
-            indH = yData{:,"h/D"}==Headings(i);
+            indH = yData{:,"h/D"}==depth(i);
             yData1{i} = yData(indH,:);
             n = unique(yData1{i}{:,"Target Flow Speed"});
             ax = nexttile;
@@ -54,22 +55,53 @@ fields = fieldnames(data);
                 for k = 1:length(q)
                     %steering
                     indq = yData2{j}{:,"Steering"}==q(k);
-                    yData3{counter} = yData2{j}(indq,:);
+                    yData3{counter} = yData2{j}(indq,:);     
+                    %if repeat headings we need to average these and tack
+                    %on the standard deviation
+                    [GC,GR] = groupcounts(yData3{counter}{:,"Heading"});
+                    if any(GC>1)
+                        %there are repeats, identify the value
+                        indGC = find(GC>1);
+                        valueGR = GR(indGC); %this may be larger than 1 value
+                        %find corresponding row from yData3
+                        for a = 1:length(valueGR)
+                            rowsYData3 = find(yData3{counter}{:,"Heading"}==valueGR(a));
+                            temp = yData3{counter}(rowsYData3,:);
+                            yData3{counter}(rowsYData3,:) = []; %deletes the row
+                            mu = mean(temp{:,barelabel});
+                            if GC(indGC(a))>2
+                                sigma = std(temp{:,barelabel});
+                            else
+                                sigma = abs(temp{1,barelabel}-temp{2,barelabel});
+                            end
+                            newYData3row = [mu,temp{1,2:end-1},sigma];
+                            yData3{counter}{end+1,:} = newYData3row;
+                        end
+                    end
                     %sort by heading, increasing from 0 - 180
                     yData3{counter} = sortrows(yData3{counter},'Heading');
                     hold on
                     if yData3{counter}{1,4} == 0   
-                        plot(yData3{counter},'Heading',barelabel,'Marker','o','MarkerFaceColor',col(colCounter,:),...
-                            'Color',col(colCounter,:),'DisplayName',strcat({'\delta= '},string(yData3{counter}{1,"Steering"}),...
-                            {' deg; U= '},string(yData3{counter}{1,"Target Flow Speed"}),{' m/s'}));
+                         errorbar(yData3{counter}{:,"Heading"},yData3{counter}{:,barelabel},yData3{counter}{:,"Stdev"},...
+                             'Marker','o','MarkerFaceColor',col(colCounter,:),'Color',col(colCounter,:),'DisplayName',...
+                             strcat({'\delta= '},string(yData3{counter}{1,"Steering"}),{' deg; U= '},...
+                             string(yData3{counter}{1,"Target Flow Speed"}),{' m/s'}));
                     elseif yData3{counter}{1,4} > 0
-                         plot(yData3{counter},'Heading',barelabel,'Marker','<','MarkerFaceColor',col(colCounter,:),...
-                             'Color',col(colCounter,:),'DisplayName',strcat({'\delta= '},string(yData3{counter}{1,"Steering"}),...
-                             {' deg; U= '},string(yData3{counter}{1,"Target Flow Speed"}),{' m/s'}));
+                        errorbar(yData3{counter}{:,"Heading"},yData3{counter}{:,barelabel},yData3{counter}{:,"Stdev"},...
+                             'Marker','<','MarkerFaceColor',col(colCounter,:),'Color',col(colCounter,:),'DisplayName',...
+                             strcat({'\delta= '},string(yData3{counter}{1,"Steering"}),{' deg; U= '},...
+                             string(yData3{counter}{1,"Target Flow Speed"}),{' m/s'}));
+%                          plot(yData3{counter},'Heading',barelabel,'Marker','<','MarkerFaceColor',col(colCounter,:),...
+%                              'Color',col(colCounter,:),'DisplayName',strcat({'\delta= '},string(yData3{counter}{1,"Steering"}),...
+%                              {' deg; U= '},string(yData3{counter}{1,"Target Flow Speed"}),{' m/s'}));
                     else
-                         plot(yData3{counter},'Heading',barelabel,'Marker','>','MarkerFaceColor',col(colCounter,:),...
-                             'Color',col(colCounter,:),'DisplayName',strcat({'\delta= '},string(yData3{counter}{1,"Steering"}),...
-                             {' deg; U= '},string(yData3{counter}{1,"Target Flow Speed"}),{' m/s'}));
+                        errorbar(yData3{counter}{:,"Heading"},yData3{counter}{:,barelabel},yData3{counter}{:,"Stdev"},...
+                             'Marker','>','MarkerFaceColor',col(colCounter,:),'Color',col(colCounter,:),'DisplayName',...
+                             strcat({'\delta= '},string(yData3{counter}{1,"Steering"}),{' deg; U= '},...
+                             string(yData3{counter}{1,"Target Flow Speed"}),{' m/s'}));
+%                          plot(yData3{counter},'Heading',barelabel,'Marker','>','MarkerFaceColor',col(colCounter,:),...
+%                              'Color',col(colCounter,:),'DisplayName',strcat({'\delta= '},string(yData3{counter}{1,"Steering"}),...
+%                              {' deg; U= '},string(yData3{counter}{1,"Target Flow Speed"}),{' m/s'}));
                     end
                     counter = counter+1;
                 end %end k for loop
@@ -77,6 +109,7 @@ fields = fieldnames(data);
             title(strcat(barelabel,{' V. h/d= '},string(yData3{counter-1}{1,"h/D"})));
             xlabel("Heading (deg)");
             xticks(0:22.5:max(yData{:,"Heading"}));
+            axis padded
             ylabel(label);
             legend('Location','bestoutside','NumColumns',1,"Interpreter","tex");
             hold off
@@ -127,16 +160,16 @@ fields = fieldnames(data);
         yData.Properties.VariableNames = [barelabel,"Water Depth","Heading",...
         "Steering","Flow Speed",'Target Flow Speed','h/D','Fr','Sr'];
         tiles = tiledlayout(3,3); %9 total angles
-        Headings = unique(yData{:,"Heading"});
+        depth = unique(yData{:,"Heading"});
         counter = 1;
         %figure out a better way to do this line coloring
         Froudes = unique(yData{:,"Fr"});
         col = lines(length(Froudes));
         colCounter = 0;
         yData1{1,4}=[];
-        for i = 1:length(Headings)
+        for i = 1:length(depth)
             %heading
-            indH = yData{:,"Heading"}==Headings(i);
+            indH = yData{:,"Heading"}==depth(i);
             yData1{i} = yData(indH,:);
             n = unique(yData1{i}{:,"Fr"});
             yData2{1,3} = [];
@@ -173,7 +206,7 @@ fields = fieldnames(data);
             end %end froude
             colCounter = 0;
             clear yData2
-            title(strcat(barelabel,{' V. Submergence Ratio for \beta = '},string(Headings(i))),Interpreter="tex");
+            title(strcat(barelabel,{' V. Submergence Ratio for \beta = '},string(depth(i))),Interpreter="tex");
             xLABEL = "Submergence Ratio ($\frac{H}{Volume^{\frac{1}{3}}}$)";
             xlabel(xLABEL,'Interpreter','latex');
             %xticks(0:22.5:max(yData{:,"Sr"}));

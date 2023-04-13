@@ -83,8 +83,8 @@ fprintf('Reading in test matrix file...');
 testMatrix = readtable(testMatrixFile.name,opts);
 
 cd (dataPath);
-%dataFiles = dir('EF*');
-dataFiles = dir('WU*');
+dataFiles = dir('EF*');
+%dataFiles = dir('WU*');
 dataFileNames = {dataFiles.name};
 buoyantFiles = dir('B*');
 buoyantFileNames = {buoyantFiles.name};
@@ -130,8 +130,8 @@ if length(dataFiles)>length(existingData)
            temp = T.Properties.VariableNames;
            temp2 = strrep(temp,'_','-');
            T = renamevars(T,temp,temp2);
-           %Arc.(dataFileNames{ind}) = meanandstdevARC(T,testMatrix,dataFileNames{ind},B,debug);
-           wheelsUPARC.(dataFileNames{ind}) = meanandstdevARC(T,testMatrix,dataFileNames{ind},B,debug);
+           Arc.(dataFileNames{ind}) = meanandstdevARC(T,testMatrix,dataFileNames{ind},B,debug);
+           %wheelsUPARC.(dataFileNames{ind}) = meanandstdevARC(T,testMatrix,dataFileNames{ind},B,debug);
         else
             %if the file isn't already a part of T add it
             if ind>length(existingData)
@@ -149,8 +149,8 @@ if length(dataFiles)>length(existingData)
                 temp = T.Properties.VariableNames;
                 temp2 = strrep(temp,'_','-');
                 T = renamevars(T,temp,temp2);
-                %Arc.(dataFileNames{ind}) = meanandstdevARC(T,testMatrix,dataFileNames{ind},B,debug);
-                wheelsUPARC.(dataFileNames{ind}) = meanandstdevARC(T,testMatrix,dataFileNames{ind},B,debug);
+                Arc.(dataFileNames{ind}) = meanandstdevARC(T,testMatrix,dataFileNames{ind},B,debug);
+                %wheelsUPARC.(dataFileNames{ind}) = meanandstdevARC(T,testMatrix,dataFileNames{ind},B,debug);
             end
         end
         clear T
