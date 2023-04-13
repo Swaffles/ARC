@@ -63,10 +63,11 @@ fields = fieldnames(data);
         yData(i,13) = {round(FrDSr,2,"significant")};
         yData(i,14) = {round(FrHSr,2,"significant")};
         yData(i,15) = {round(Sr,2,"decimals")};
+        yData(i,16) = {0}; %stdev for whatever you are choosing to plot
     end
     yData.Properties.VariableNames = [barelabelfX,barelabelfY,barelabelfZ,...
         barelabelmX,barelabelmY,barelabelmZ,"Water Depth","Heading",...
-        "Steering","Flow Speed",'Target Flow Speed','h/D','FrH','FrD','Sr'];
+        "Steering","Flow Speed",'Target Flow Speed','h/D','FrH','FrD','Sr','Stdev'];
     
     %UI Input
     %User Selects which Depth they want to compare against
@@ -145,8 +146,40 @@ fields = fieldnames(data);
             yData3 = yData2(indx,:); 
             %now narrow down the speed
             uniqueSpeed2 = unique(yData3{:,"Target Flow Speed"});
-            indx = yData3{:,"Target Flow Speed"} == uniqueSpeed2(indSpeed);
+            if length(uniqueSpeed2)>3 %handle if there are two middle speeds due to repeats
+                if indSpeed == 2
+                    indx = yData3{:,"Target Flow Speed"} == uniqueSpeed2(2:3);
+                elseif indSpeed == 3
+                    indx = yData3{:,"Target Flow Speed"} == uniqueSpeed2(end);
+                else
+                    indx = yData3{:,"Target Flow Speed"} == uniqueSpeed2(indSpeed);
+                end
+            else
+                indx = yData3{:,"Target Flow Speed"} == uniqueSpeed2(indSpeed);
+            end
             yData3 = yData3(indx,:);
+%             %if repeat headings we need to average these and tack
+%             %on the standard deviation
+%             [GC,GR] = groupcounts(yData3{:,"Heading"});
+%             if any(GC>1)
+%                 %there are repeats, identify the value
+%                 indGC = find(GC>1);
+%                 valueGR = GR(indGC); %this may be larger than 1 value
+%                 %find corresponding row from yData3
+%                 for a = 1:length(valueGR)
+%                     rowsYData3 = find(yData3{:,"Heading"}==valueGR(a));
+%                     temp = yData3(rowsYData3,:);
+%                     yData3(rowsYData3,:) = []; %deletes the row
+%                     mu = mean(temp{:,barelabel});
+%                     if GC(indGC(a))>2
+%                         sigma = std(temp{:,barelabel});
+%                     else
+%                         sigma = abs(temp{1,barelabel}-temp{2,barelabel});
+%                     end
+%                     newYData3row = [mu,temp{1,2:end-1},sigma];
+%                     yData3{end+1,:} = newYData3row;
+%                 end
+%             end
             yData3 = sortrows(yData3,"Heading");
             
             Forces2Plot(1:2,:) = [yData1{:,Force{indF}}';yData3{:,Force{indF}}'];
@@ -187,12 +220,46 @@ fields = fieldnames(data);
         %position 1 will be the slowest and correspond with indS = 1 (Slow), the value
         %in position 3 will be quickest and correspond with indS = 3 (Fast)
         uniqueSpeed1 = unique(yData1{:,"Target Flow Speed"});
-        indx = yData1{:,"Target Flow Speed"} == uniqueSpeed1(indSpeed);
+        if length(uniqueSpeed1)>3 %handle if there are two middle speeds due to repeats
+            if indSpeed == 2
+                indx = yData1{:,"Target Flow Speed"} == uniqueSpeed1(2:3);
+            elseif indSpeed == 3
+                indx = yData1{:,"Target Flow Speed"} == uniqueSpeed1(end);
+            else
+                indx = yData1{:,"Target Flow Speed"} == uniqueSpeed1(indSpeed);
+            end
+        else
+            indx = yData1{:,"Target Flow Speed"} == uniqueSpeed1(indSpeed);
+        end
         yData1 = yData1(indx,:);
         %steering
         indx = yData1{:,"Steering"} == Steering(indST);
         yData1 = yData1(indx,:);
         X = categorical(unique(yData1{:,"Heading"}));
+        %if repeat headings we need to average these and tack
+        %on the standard deviation
+        [GC,GR] = groupcounts(yData1{:,"Heading"});
+        if any(GC>1)
+            %there are repeats, identify the value
+            indGC = find(GC>1);
+            valueGR = GR(indGC); %this may be larger than 1 value
+            %find corresponding row from yData3
+            for a = 1:length(valueGR)
+                rowsYData1 = find(yData1{:,"Heading"}==valueGR(a));
+                temp = yData1(rowsYData1,:);
+                yData1(rowsYData1,:) = []; %deletes the row
+                mu = mean(temp{:,Force{indF}});
+                if GC(indGC(a))>2
+                    sigma = std(temp{:,Force{indF}});
+                else
+                    sigma = abs(temp{1,Force{indF}}-temp{2,Force{indF}});
+                end
+                newYData1row = temp(1,:);
+                newYData1row{1,indF} = mu; %should write to the correct place
+                newYData1row{1,end} = sigma;
+                yData1(end+1,:) = newYData1row;
+            end
+        end
         yData1 = sortrows(yData1,"Heading");
         %other depths data
         indx = yData{:,"Steering"} == Steering(indST);
@@ -210,6 +277,7 @@ fields = fieldnames(data);
         indx = Depth ~= Depth(indD);  
         otherDepths = Depth(indx);
         Forces2Plot(1,:) = yData1{:,Force{indF}}';
+        sigma2Plot(1,:) = yData1{:,"Stdev"}';
         legendLabel(1,1) = strcat({'h/D = '},string(Depth(indD)),{', U = '},string(uniqueSpeed1(indSpeed)),{' m/s'});
         for i=1:3
             %first select the depth
@@ -217,16 +285,60 @@ fields = fieldnames(data);
             yData3 = yData2(indx,:); 
             %now narrow down the speed
             uniqueSpeed2 = unique(yData3{:,"Target Flow Speed"});
-            indx = yData3{:,"Target Flow Speed"} == uniqueSpeed2(indSpeed);
+            if length(uniqueSpeed2)>3 %handle if there are two middle speeds due to repeats
+                if indSpeed == 2
+                    indx = yData3{:,"Target Flow Speed"} == uniqueSpeed2(2:3);
+                elseif indSpeed == 3
+                    indx = yData3{:,"Target Flow Speed"} == uniqueSpeed2(end);
+                else
+                    indx = yData3{:,"Target Flow Speed"} == uniqueSpeed2(indSpeed);
+                end
+            else
+                indx = yData3{:,"Target Flow Speed"} == uniqueSpeed2(indSpeed);
+            end
             yData3 = yData3(indx,:);
+            %if repeat headings we need to average these and tack
+            %on the standard deviation
+            [GC,GR] = groupcounts(yData3{:,"Heading"});
+            if any(GC>1)
+                %there are repeats, identify the value
+                indGC = find(GC>1);
+                valueGR = GR(indGC); %this may be larger than 1 value
+                %find corresponding row from yData3
+                for a = 1:length(valueGR)
+                    rowsYData3 = find(yData3{:,"Heading"}==valueGR(a));
+                    temp = yData3(rowsYData3,:);
+                    yData3(rowsYData3,:) = []; %deletes the row
+                    mu = mean(temp{:,Force{indF}});
+                    if GC(indGC(a))>2
+                        sigma = std(temp{:,Force{indF}});
+                    else
+                        sigma = abs(temp{1,Force{indF}}-temp{2,Force{indF}});
+                    end
+                    newYData3row = temp(1,:);
+                    newYData3row{1,indF} = mu; %should write to the correct place
+                    newYData3row{1,end} = sigma;
+                    yData3(end+1,:) = newYData3row;
+                end
+            end
             yData3 = sortrows(yData3,"Heading");
             
             Forces2Plot(i+1,:) = yData3{:,Force{indF}}';
+            sigma2Plot(i+1,:) = yData3{:,"Stdev"}';
             legendLabel(1,i+1) = strcat({'h/D = '},string(otherDepths(i)),{', U = '},string(uniqueSpeed2(indSpeed)),{' m/s'});
         end
             
-            bar(X,Forces2Plot,0.9);
+            b = bar(X,Forces2Plot,0.9);
             colororder(myColorMap); %keeps comapred depth color constant, changes others according to color map
+            hold on
+            % calculate the number of groups and number of bars in each
+            % group
+            [ngroups,nbars] = size(Forces2Plot);
+            newX = nan(ngroups,nbars);
+            for e = 1:ngroups
+                newX(e,:) = b(e).XEndPoints;
+            end
+            errorbar(newX,Forces2Plot,sigma2Plot,'k',"LineStyle","none");
             if contains(Force{indF},'F')
                 unitLabel = 'N';
             else

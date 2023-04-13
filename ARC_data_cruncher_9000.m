@@ -320,27 +320,28 @@ end
 cd(programPath);
 %%
 %Stacked area force and moment charts
-if debug
-    close all
-end
-%Each loop creates a new stacked area chart
-%1 = body forces/moments
-%2 - Wheel forces/moments
-%cd(savePath);
-for ind = 1:2
-    if ind == 1
-        figname = 'Body Forces/Moments';
-    elseif ind == 2
-        figname = 'Wheel Forces/Moments';
-    else
-        fprintf("Error Ocurred\n");
-        break;
-    end
-    f1 = figure("Name",strcat(figname,' v Heading'));
-    label = strcat(figname,' (N, Nm)');
-    barelabel = figname;
-    arcStackedForceFigureMaker(Arc,ind,label,barelabel,vars);
-end
+%******************** Not currently in a working state. also not useful
+% if debug
+%     close all
+% end
+% %Each loop creates a new stacked area chart
+% %1 = body forces/moments
+% %2 - Wheel forces/moments
+% %cd(savePath);
+% for ind = 1:2
+%     if ind == 1
+%         figname = 'Body Forces/Moments';
+%     elseif ind == 2
+%         figname = 'Wheel Forces/Moments';
+%     else
+%         fprintf("Error Ocurred\n");
+%         break;
+%     end
+%     f1 = figure("Name",strcat(figname,' v Heading'));
+%     label = strcat(figname,' (N, Nm)');
+%     barelabel = figname;
+%     arcStackedForceFigureMaker(Arc,ind,label,barelabel,vars);
+% end
 %cd(programPath);
 
 %%
