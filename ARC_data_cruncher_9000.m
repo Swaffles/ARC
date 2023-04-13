@@ -64,7 +64,7 @@ testMatrixFile = dir('ARC Test Matrix Fall 2022.xlsx');
 opts = spreadsheetImportOptions("NumVariables", 15);
 
 opts.Sheet = "Sheet1";
-opts.DataRange = "A4:O417"; %previously O336
+opts.DataRange = "A4:O420"; %previously O336
 
 % Specify column names and types
 opts.VariableNames = ["TrialName", "WaterDepth", "h/D", "PumpDutyCycle",...
@@ -83,7 +83,8 @@ fprintf('Reading in test matrix file...');
 testMatrix = readtable(testMatrixFile.name,opts);
 
 cd (dataPath);
-dataFiles = dir('EF*');
+%dataFiles = dir('EF*');
+dataFiles = dir('WU*');
 dataFileNames = {dataFiles.name};
 buoyantFiles = dir('B*');
 buoyantFileNames = {buoyantFiles.name};
@@ -129,7 +130,8 @@ if length(dataFiles)>length(existingData)
            temp = T.Properties.VariableNames;
            temp2 = strrep(temp,'_','-');
            T = renamevars(T,temp,temp2);
-           Arc.(dataFileNames{ind}) = meanandstdevARC(T,testMatrix,dataFileNames{ind},B,debug);
+           %Arc.(dataFileNames{ind}) = meanandstdevARC(T,testMatrix,dataFileNames{ind},B,debug);
+           wheelsUPARC.(dataFileNames{ind}) = meanandstdevARC(T,testMatrix,dataFileNames{ind},B,debug);
         else
             %if the file isn't already a part of T add it
             if ind>length(existingData)
@@ -147,7 +149,8 @@ if length(dataFiles)>length(existingData)
                 temp = T.Properties.VariableNames;
                 temp2 = strrep(temp,'_','-');
                 T = renamevars(T,temp,temp2);
-                Arc.(dataFileNames{ind}) = meanandstdevARC(T,testMatrix,dataFileNames{ind},B,debug);
+                %Arc.(dataFileNames{ind}) = meanandstdevARC(T,testMatrix,dataFileNames{ind},B,debug);
+                wheelsUPARC.(dataFileNames{ind}) = meanandstdevARC(T,testMatrix,dataFileNames{ind},B,debug);
             end
         end
         clear T
