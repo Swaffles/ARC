@@ -20,12 +20,40 @@ function myTable = meanandstdevARC(dataTable,testMatrix,dataFileName,buoyantTabl
         for b=1:length(buoyantTableFields)
             compareDepth = string(buoyantTable.(buoyantTableFields{b}){end,2});
             if  strcmp(compareDepth,waterDepth)
-                buoyantCorrectionName = buoyantTableFields{b};
-                if debug
-                    fprintf("Buoyant Force Correction Table %s\n",buoyantCorrectionName);
+                % look for high speed to correct those hydrostatics
+                Speed = testMatrix.("PredictedWaterSpeed")(testMatrixIndex);
+                if Speed > 0.7
+                    fprintf("Correcting High Speed Run Buoyancy...\n");
+                    if strcmp(waterDepth,'0.4')
+                        buoyantCorrectionName = buoyantTableFields{9}; % B0010
+                        if debug
+                            fprintf("Buoyant Force Correction Table %s\n", buoyantCorrectionName);
+                        end
+                        buoyantCorrection = buoyantTable.(buoyantCorrectionName);
+                        break;
+                    elseif strcmp(waterDepth,'0.6')
+                        buoyantCorrectionName = buoyantTableFields{10}; % B0011
+                        if debug
+                            fprintf("Buoyant Force Correction Table %s\n", buoyantCorrectionName);
+                        end
+                        buoyantCorrection = buoyantTable.(buoyantCorrectionName);
+                        break;
+                    else % the 0.8 case
+                        buoyantCorrectionName = buoyantTableFields{11}; % B0012
+                        if debug
+                            fprintf("Buoyant Force Correction Table %s\n", buoyantCorrectionName);
+                        end
+                        buoyantCorrection = buoyantTable.(buoyantCorrectionName);
+                        break;
+                    end
+                else
+                    buoyantCorrectionName = buoyantTableFields{b};
+                    if debug
+                        fprintf("Buoyant Force Correction Table %s\n",buoyantCorrectionName);
+                    end
+                    buoyantCorrection = buoyantTable.(buoyantCorrectionName);
+                    break;
                 end
-                buoyantCorrection = buoyantTable.(buoyantCorrectionName);
-                break;
             end
         end
 %         if ~exist('buoyantCorrection','var')
