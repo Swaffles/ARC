@@ -87,6 +87,7 @@ function myTable = meanandstdevARC(dataTable,testMatrix,dataFileName,buoyantTabl
         meanBodyForce = mean(dataTable{:,[vars(1:6)]},1,'omitnan');
     end
     stdBodyForce = std(dataTable{:,[vars(1:6)]},1,'omitnan');
+    stdBodyForce = sqrt(stdBodyForce.^2 + buoyantCorrection{1:6,5}'.^2); % rms std for both
     myTable{1:6,["Quantity","Mean","Mean Dynamic","Mean Buoyancy","STDDEV"]} =...
            [vars(1:6),meanBodyForce',(meanBodyForce-buoyantCorrection{1:6,2}')',...
             buoyantCorrection{1:6,2},stdBodyForce'];
@@ -110,7 +111,7 @@ function myTable = meanandstdevARC(dataTable,testMatrix,dataFileName,buoyantTabl
     catch
         meanWheelForce = tempMean;
     end
-    stdWheelForce = tempStd;
+    stdWheelForce = sqrt(tempStd.^2 + buoyantCorrection{7:12,5}'.^2); % rms std from hydrostatic
     myTable{7:12,["Quantity","Mean","Mean Dynamic","Mean Buoyancy","STDDEV"]} =...
            [vars(7:12),meanWheelForce',(meanWheelForce-buoyantCorrection{7:12,2}')',...
             buoyantCorrection{7:12,2},stdWheelForce'];
