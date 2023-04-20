@@ -270,61 +270,50 @@ switch TableMode
         % read in values from flat table
         load HydroData_FLAT.mat %loads in as yData
         yData = A.Total; %just want to operate on the totals
-        Uvel = unique(yData{:,"Mean Flow Speed [m/s]"});
+        Uvel = unique(yData{:,"Flow Speed [m/s]"});
         Nu = length(Uvel);
-        Depth = unique(yData{:,"Mean Water Depth [m]"});
+        Depth = unique(yData{:,"Water Depth [m]"});
         Nh = length(Depth);
         Heading = unique(yData{:,"Heading [deg]"});
         Nb = length(Heading);
-        Steering = unique(yData{:,"Steering [deg]"});
+        Steering = unique(yData{:,"WheelAngle"});
         Ns = length(Steering);
-        fprintf("Creating empty interpHydro cell array...\n");
+        fprintf("Creating empty interpHydro...\n");
         interpHydro = struct;
-        for i = 1:Nu
-            indU = yData{:,"Mean Flow Speed [m/s]"} == Uvel(i);
-            find(indU)
-            interpHydro.Velocity{1,i} = Uvel(i);
-            interpHydro.Velocity{2,i} = yData(indU,2:end);
-        end
-        for i = 1:Nh
-            indH = yData{:,"Mean Water Depth [m]"} == Depth(i);
-            find(indH)
-            interpHydro.Depth{1,i} = Depth(i);
-            interpHydro.Depth{2,i} = yData(indH,2:end);
-        end
-        for i = 1:Nb
-            indB = yData{:,"Heading [deg]"} == Heading(i);
-            find(indB)
-            interpHydro.Heading{1,i} = Heading(i);
-            interpHydro.Heading{2,i} = yData(indB,2:end);
-        end
-        for i = 1:Ns
-            indS = yData{:,"Steering [deg]"} == Steering(i);
-            find(indS)
-            interpHydro.Steering{1,i} = Steering(i);
-            interpHydro.Steering{2,i} = yData(indS,2:end);
-        end
-        % 4-17-22 I don't think the cell array will work...too confusing to
-        % build, memory inefficient, don't think lookups/interpolations
-        % will actually be that fast
-%         interpHydro = cell(Nu,Nh,Nb,Ns);
-%         for i=1:Nu
-%             indU = yData{:,"Mean Flow Speed [m/s]"} == Uvel(i);
-%             find(indU)
-%             interpHydro{i,1,1,1} = yData(indU,2:end);
-%             interpHydro(i,1,1,1)
-%         end
-%         for i = 1:length(Nh)
-%             indH = yData{:,"Mean Water Depth [m]"} == Depth(i);
-%             interpHydro{1,i,1,1} = yData(indH,2:end);
-%         end
-%         for i = 1:length(Nb)
-%             indB = yData{:,"Heading [deg]"} == Heading(i);
-%             interpHydro{1,1,i,1} = yData(indB,2:end);
-%         end
-%         for i = 1:length(Ns)
-%             indS = yData{:,"Steering [deg]"} == Steering(i);
-%             interpHydro{1,1,1,i} = yData(indS,2:end);
-%         end
+        vars = ["Fx","Fy","Fz","Mx","My","Mz","WheelFX","WheelFy",...
+                "WheelFz","WheelMx","WheelMy","WheelMz"];
+        tablevars = fieldnames(yData);
+        tablevars = tablevars(2:13);
+        steering = unique(yData{:,"WheelAngle"});
+        steeringString = ["Starboard","Center","Port"]; % port is Positive 15
+        countUvel = 1;
+        countHeading = 1;
+        for v = 1:length(vars)
+            for s = 1:length(steering)
+                interpHydro.(vars{v}).(steeringString{s}) = zeros(Nh,Nu,Nb);
+                indSteering = yData{:,"WheelAngle"} == steering(s);
+                yData1 = yData(indSteering,:);
+                % fill with relevant data
+                Depth1 = unique(yData1{:,"Water Depth [m]"});
+                for i = 1:Nh 
+                    indx = yData1{:,"Water Depth [m]"} == Depth1(i);
+                    % find Uvel
+                    Uvel1 = unique(yData1{indx,"Flow Speed [m/s]"});
+                    for j = 1:length(Uvel1)
+                        indy = yData1{:,"Flow Speed [m/s]"} == Uvel1(j);
+                        yData2 = yData1(indy,:);
+                        % find heading
+                        Heading1 = unique(yData2{:,"Heading [deg]"});
+                        for k = 1:length(Heading1)
+                            indz = yData2{:,"Heading [deg]"} == Heading1(k);
+                            interpHydro.(vars{v}).(steeringString{s})(i,countUvel,countHeading)= yData2{indz,tablevars{v}};
+                            countHeading = countHeading + 1;
+                        end %k loop
+                        countUvel = countUvel + 1;
+                    end %j loop
+                end %i loop
+            end % s loop
+        end % v loop
+
 
 end
