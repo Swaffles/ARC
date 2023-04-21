@@ -15,15 +15,7 @@
 % by taking the mean of all values down the relevant columns.
 %
 % Interpolation table structure:
-% Nu X Nh X Nbeta X Ndelta cell array. Each element of the cell array
-% contains all of the values for that parameter. 
-% e.g.
-% {1,:,:,:} represents all of the test conditions for the first index of
-% water speed as a matrix. {:,1,:,:} contains all test conditions for the 
-% first index of water depth again as a matrix. 
-%
-% though there are repeated values in each matrix, more efficient search is
-% possible with this structure.
+% Nu X Nh X Nbeta
 
 
 clearvars -except homePath dataPath programPath
@@ -270,12 +262,22 @@ switch TableMode
         % read in values from flat table
         load HydroData_FLAT.mat %loads in as yData
         yData = A.Total; %just want to operate on the totals
-        Uvel = unique(yData{:,"Flow Speed [m/s]"});
-        Nu = length(Uvel);
-        Depth = unique(yData{:,"Water Depth [m]"});
-        Nh = length(Depth);
-        Heading = unique(yData{:,"Heading [deg]"});
-        Nb = length(Heading);
+        Uvel = round(yData{:,"Flow Speed [m/s]"},2); % round to nearest cm/s
+        Depth = round(yData{:,"Water Depth [m]"},2); % round to nearest cm
+        Heading = yData{:,"Heading [deg]"};
+        [L,W] = size(yData);
+%         [Uvel,iUvel,~] = unique(yData{:,"Flow Speed [m/s]"});
+%         Uvel = round(Uvel,2); %round to nearest cm/s
+%         [Uvel,iUvel,~] = unique(Uvel);
+%         Nu = length(Uvel);
+%         Depth = unique(yData{:,"Water Depth [m]"});
+%         Depthalt = round(yData{iUvel,"Water Depth [m]"},2);
+%         Depth = round(Depth,2); % round to nearest cm
+%         Depth = unique(Depth);
+%         Nh = length(Depth);
+%         Heading = unique(yData{:,"Heading [deg]"});
+%         Headingalt = yData{iUvel,"Heading [deg]"};
+%         Nb = length(Heading);
         Steering = unique(yData{:,"WheelAngle"});
         Ns = length(Steering);
         fprintf("Creating empty interpHydro...\n");
@@ -286,34 +288,38 @@ switch TableMode
         tablevars = tablevars(2:13);
         steering = unique(yData{:,"WheelAngle"});
         steeringString = ["Starboard","Center","Port"]; % port is Positive 15
-        countUvel = 1;
-        countHeading = 1;
+        count = 1;
         for v = 1:length(vars)
             for s = 1:length(steering)
-                interpHydro.(vars{v}).(steeringString{s}) = zeros(Nh,Nu,Nb);
+                interpHydro.(vars{v}).(steeringString{s}).Values = zeros(L/length(steering),1);
                 indSteering = yData{:,"WheelAngle"} == steering(s);
                 yData1 = yData(indSteering,:);
                 % fill with relevant data
-                Depth1 = unique(yData1{:,"Water Depth [m]"});
-                for i = 1:Nh 
-                    indx = yData1{:,"Water Depth [m]"} == Depth1(i);
-                    % find Uvel
-                    Uvel1 = unique(yData1{indx,"Flow Speed [m/s]"});
-                    for j = 1:length(Uvel1)
-                        indy = yData1{:,"Flow Speed [m/s]"} == Uvel1(j);
-                        yData2 = yData1(indy,:);
-                        % find heading
-                        Heading1 = unique(yData2{:,"Heading [deg]"});
-                        for k = 1:length(Heading1)
-                            indz = yData2{:,"Heading [deg]"} == Heading1(k);
-                            interpHydro.(vars{v}).(steeringString{s})(i,countUvel,countHeading)= yData2{indz,tablevars{v}};
-                            countHeading = countHeading + 1;
+                Heading1 = unique(yData1{:,"Heading [deg]"}); % ensure all headings exist  
+                for i = 1:length(Heading1) 
+                    indx = yData1{:,"Heading [deg]"} == Heading1(i);
+                    yData2 = yData1(indx,:);
+                    yData2 = sortrows(yData2,"Water Depth [m]");
+                    Depth1 = unique(round(yData2{:,"Water Depth [m]"},2));
+                    % loop over all speeds, will place 0 where no data exists
+                    for j = 1:length(Depth1) 
+                        indy = round(yData2{:,"Water Depth [m]"},2) == Depth1(j);
+                        yData3 = yData2(indy,:);
+                        yData3 = sortrows(yData3,"Flow Speed [m/s]")
+                        Uvel1 = unique(round(yData3{:,"Flow Speed [m/s]"},2));
+                        %again loop over the whole set
+                        for k = 1:length(Uvel1)
+                            indz = round(yData3{:,"Flow Speed [m/s]"},2) == Uvel1(k);
+                            interpHydro.(vars{v}).(steeringString{s}).Values(count)= yData3{indz,tablevars{v}};
+                            interpHydro.(vars{v}).(steeringString{s}).P(count,:) = [Heading1(i),Depth1(j),Uvel1(k)];
+                            count = count + 1;
                         end %k loop
-                        countUvel = countUvel + 1;
                     end %j loop
                 end %i loop
+                count = 1;
             end % s loop
         end % v loop
-
+        fprintf("InterpHydro Table Created Successfully\n");
+        clearvars -except A yData interpHydro homePath programPath savePath Heading Depth Uvel
 
 end
