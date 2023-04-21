@@ -305,7 +305,7 @@ switch TableMode
                     for j = 1:length(Depth1) 
                         indy = round(yData2{:,"Water Depth [m]"},2) == Depth1(j);
                         yData3 = yData2(indy,:);
-                        yData3 = sortrows(yData3,"Flow Speed [m/s]")
+                        yData3 = sortrows(yData3,"Flow Speed [m/s]");
                         Uvel1 = unique(round(yData3{:,"Flow Speed [m/s]"},2));
                         %again loop over the whole set
                         for k = 1:length(Uvel1)
@@ -320,5 +320,5 @@ switch TableMode
             end % s loop
         end % v loop
         fprintf("InterpHydro Table Created Successfully\n");
-        clearvars -except A yData interpHydro homePath programPath savePath Heading Depth Uvel
+        clearvars -except A yData interpHydro homePath programPath savePat
 end
