@@ -321,5 +321,4 @@ switch TableMode
         end % v loop
         fprintf("InterpHydro Table Created Successfully\n");
         clearvars -except A yData interpHydro homePath programPath savePath Heading Depth Uvel
-
 end
