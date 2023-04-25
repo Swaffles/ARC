@@ -282,7 +282,7 @@ switch TableMode
         Ns = length(Steering);
         fprintf("Creating empty interpHydro...\n");
         interpHydro = struct;
-        vars = ["Fx","Fy","Fz","Mx","My","Mz","WheelFX","WheelFy",...
+        vars = ["Fx","Fy","Fz","Mx","My","Mz","WheelFx","WheelFy",...
                 "WheelFz","WheelMx","WheelMy","WheelMz"];
         tablevars = fieldnames(yData);
         tablevars = tablevars(2:13);
