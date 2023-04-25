@@ -319,6 +319,8 @@ switch TableMode
                 count = 1;
             end % s loop
         end % v loop
+        save('ARC_Interpolation_Table.mat',"interpHydro");
         fprintf("InterpHydro Table Created Successfully\n");
         clearvars -except A yData interpHydro homePath programPath savePat
+
 end
