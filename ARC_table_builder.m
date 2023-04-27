@@ -262,8 +262,8 @@ switch TableMode
         % read in values from flat table
         load HydroData_FLAT.mat %loads in as yData
         yData = A.Total; %just want to operate on the totals
-        Uvel = round(yData{:,"Flow Speed [m/s]"},2); % round to nearest cm/s
-        Depth = round(yData{:,"Water Depth [m]"},2); % round to nearest cm
+        Uvel = round(yData{:,"Flow Speed [m/s]"},3); % round to nearest mm/s
+        Depth = round(yData{:,"Water Depth [m]"},3); % round to nearest mm
         Heading = yData{:,"Heading [deg]"};
         [L,W] = size(yData);
 %         [Uvel,iUvel,~] = unique(yData{:,"Flow Speed [m/s]"});
