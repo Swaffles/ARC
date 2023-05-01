@@ -261,7 +261,7 @@ switch TableMode
         
         % read in values from flat table
         load HydroData_FLAT.mat %loads in as yData
-        ROUND2 = 2;
+        ROUND2 = 4; %4 original values no rounding, 3 moderate rounding (values for interpolation will not be correct!)
         yData = A.Total; %just want to operate on the totals
         Uvel = round(yData{:,"Flow Speed [m/s]"},ROUND2); % round to nearest mm/s
         Depth = round(yData{:,"Water Depth [m]"},ROUND2); % round to nearest mm
@@ -290,7 +290,7 @@ switch TableMode
                     Depth1 = unique(round(yData2{:,"Water Depth [m]"},ROUND2));
                     % loop over all speeds, will place 0 where no data exists
                     for j = 1:length(Depth1) 
-                        indy = round(yData2{:,"Water Depth [m]"},2) == Depth1(j);
+                        indy = round(yData2{:,"Water Depth [m]"},ROUND2) == Depth1(j);
                         yData3 = yData2(indy,:);
                         yData3 = sortrows(yData3,"Flow Speed [m/s]");
                         Uvel1 = unique(round(yData3{:,"Flow Speed [m/s]"},ROUND2));
