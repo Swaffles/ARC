@@ -261,25 +261,12 @@ switch TableMode
         
         % read in values from flat table
         load HydroData_FLAT.mat %loads in as yData
+        ROUND2 = 2;
         yData = A.Total; %just want to operate on the totals
-        Uvel = round(yData{:,"Flow Speed [m/s]"},3); % round to nearest mm/s
-        Depth = round(yData{:,"Water Depth [m]"},3); % round to nearest mm
+        Uvel = round(yData{:,"Flow Speed [m/s]"},ROUND2); % round to nearest mm/s
+        Depth = round(yData{:,"Water Depth [m]"},ROUND2); % round to nearest mm
         Heading = yData{:,"Heading [deg]"};
         [L,W] = size(yData);
-%         [Uvel,iUvel,~] = unique(yData{:,"Flow Speed [m/s]"});
-%         Uvel = round(Uvel,2); %round to nearest cm/s
-%         [Uvel,iUvel,~] = unique(Uvel);
-%         Nu = length(Uvel);
-%         Depth = unique(yData{:,"Water Depth [m]"});
-%         Depthalt = round(yData{iUvel,"Water Depth [m]"},2);
-%         Depth = round(Depth,2); % round to nearest cm
-%         Depth = unique(Depth);
-%         Nh = length(Depth);
-%         Heading = unique(yData{:,"Heading [deg]"});
-%         Headingalt = yData{iUvel,"Heading [deg]"};
-%         Nb = length(Heading);
-        Steering = unique(yData{:,"WheelAngle"});
-        Ns = length(Steering);
         fprintf("Creating empty interpHydro...\n");
         interpHydro = struct;
         vars = ["Fx","Fy","Fz","Mx","My","Mz","WheelFx","WheelFy",...
@@ -300,16 +287,16 @@ switch TableMode
                     indx = yData1{:,"Heading [deg]"} == Heading1(i);
                     yData2 = yData1(indx,:);
                     yData2 = sortrows(yData2,"Water Depth [m]");
-                    Depth1 = unique(round(yData2{:,"Water Depth [m]"},2));
+                    Depth1 = unique(round(yData2{:,"Water Depth [m]"},ROUND2));
                     % loop over all speeds, will place 0 where no data exists
                     for j = 1:length(Depth1) 
                         indy = round(yData2{:,"Water Depth [m]"},2) == Depth1(j);
                         yData3 = yData2(indy,:);
                         yData3 = sortrows(yData3,"Flow Speed [m/s]");
-                        Uvel1 = unique(round(yData3{:,"Flow Speed [m/s]"},2));
+                        Uvel1 = unique(round(yData3{:,"Flow Speed [m/s]"},ROUND2));
                         %again loop over the whole set
                         for k = 1:length(Uvel1)
-                            indz = round(yData3{:,"Flow Speed [m/s]"},2) == Uvel1(k);
+                            indz = round(yData3{:,"Flow Speed [m/s]"},ROUND2) == Uvel1(k);
                             interpHydro.(vars{v}).(steeringString{s}).Values(count)= yData3{indz,tablevars{v}};
                             interpHydro.(vars{v}).(steeringString{s}).P(count,:) = [Heading1(i),Depth1(j),Uvel1(k)];
                             count = count + 1;
