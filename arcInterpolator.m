@@ -39,7 +39,7 @@ persistent interpHydro
 
 % if this is the first time the function has been called load the file.
 if isempty(interpHydro)
-    load('ARC_Interpolation_Table.mat');
+    load 'ARC_Interpolation_Table.mat'
 end
 
 % verify inputs are in sample range, if not correct them

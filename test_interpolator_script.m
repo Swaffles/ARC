@@ -2,7 +2,8 @@
 % a script for testing the arcInterpolator function
 
 % have the user select a test file
-[interpolationfile,interpolationpath] = uigetfile("*.txt",'Select an interpolation file');
+%[interpolationfile,interpolationpath] = uigetfile("*.txt",'Select an interpolation file');
+interpolationfile = "multi field interpolation from file.txt";
 formatSpec = '%f';
 fileID = fopen(interpolationfile,'r');
 temp = fscanf(fileID,formatSpec);
