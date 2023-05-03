@@ -1,4 +1,4 @@
-function Vq = arcInterpolator(steering2Interp,heading2Interp,depth2Interp,speed2Interp)
+function Vq = arcInterpolator(steering2Interp,heading2Interp,depth2Interp,speed2Interp) %#codegen
 % 
 %   NOTE: ARC_Interpolation_Table.mat must be in the same directory!
 %
@@ -111,7 +111,7 @@ else
         A = steering2Interp(1:3);
         % using makima, could use linear or cubic, there's not a huge
         % difference observed here, getting F smooth is more important
-        Vq(i) = interp1(A,tempV,steering2Interp(end),'makima');
+        Vq(i) = interp1(A,tempV,steering2Interp(end),'linear');
     end
 end
 
