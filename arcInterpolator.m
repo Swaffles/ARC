@@ -87,38 +87,25 @@ if length(steeringSelect) == 1
         F.Values = Values;
         Vq(i) = F(normHeading2Interp,normDepth2Interp,normSpeed2Interp);
     end
-
 else
-    % more than one steering to deal with
-    normP = cell(1,length(steeringSelect));
-    C = zeros(3,3);
-    S = zeros(3,3);
-    % P will be the same for each unique steering so get all of them and
-    % normlize.
-    for s = 1:length(steeringSelect)
-        P = interpHydro.Fx.(steeringSelect{s}).P;
-        [normP{s},C(s,:),S(s,:)] = normalize(P);
-    end
-    Values = interpHydro.Fx.(steeringSelect{1}).Values;
-    % Create the interpolant first, loop through later
-    F = scatteredInterpolant(normP{1},Values);
-    F.Method = 'linear';
-    
-    % normalize each heading to the respecitve scale for that steering,
-    % need to match each normP
-    normHeading2Interp = (heading2Interp-C(:,1))./S(:,1);
-    normDepth2Interp = (depth2Interp-C(:,2))./S(:,2);
-    normSpeed2Interp = (speed2Interp-C(:,3))./S(:,3);
+    % more than one steering to deal with   
     % loop over all forces and moments
     for i = 1:length(fields)
         % initialize a temp values where we will write our first
         % interpolation to
         tempV = zeros(1,length(steeringSelect));
         for j = 1:length(steeringSelect)
+            P = interpHydro.(fields{i}).(steeringSelect{j}).P;
+            [normP,C,S] = normalize(P);
             Values = interpHydro.(fields{i}).(steeringSelect{j}).Values;
-            F.Points = normP{j};
-            F.Values = Values;
-            tempV(j) = F(normHeading2Interp(j),normDepth2Interp(j),normSpeed2Interp(j));
+            F = scatteredInterpolant(normP,Values);
+            F.Method = 'linear';
+            % normalize each heading to the respecitve scale for that steering,
+            % need to match each normP
+            normHeading2Interp = (heading2Interp-C(1))/S(1);
+            normDepth2Interp = (depth2Interp-C(2))/S(2);
+            normSpeed2Interp = (speed2Interp-C(3))/S(3);
+            tempV(j) = F(normHeading2Interp,normDepth2Interp,normSpeed2Interp);
         end
         % now interpolate between the steering values on the rangle A
         A = steering2Interp(1:3);
@@ -136,13 +123,13 @@ function X = checkFileLimits(A)
 % displayed to the user
     wheelAngleLimits = [-15, 15];
     headingLimits = [0, 180];
-    depthLimits = [4.88/100,20.95/100];
-    speedLimits = [20.45/100,89/100];
+    depthLimits = [4.88/100, 20.95/100];
+    speedLimits = [20.45/100, 89/100];
 
     allowedValues = [wheelAngleLimits;headingLimits;depthLimits;...
                      speedLimits];
     X = zeros(size(A));
-    for a = 1:(size(A))
+    for a = 1:size(A,2)
         X(:,a) = A(:,a);
         % Find elements in the column that fall outside of the
         % allowed range
@@ -187,6 +174,7 @@ function [steeringSelect,steering2Interp] = findWheelAngle(steeringValue)
     if steeringValue > 0
         if steeringValue == 15
             steeringSelect = "Port";
+            steering2Interp = 15;
         else
             steeringSelect = ["Starboard","Center","Port"];
             steering2Interp = [-15,0,15,steeringValue];
@@ -194,6 +182,7 @@ function [steeringSelect,steering2Interp] = findWheelAngle(steeringValue)
     elseif steeringValue < 0
         if steeringValue == -15
             steeringSelect = "Starboard";
+            steering2Interp = -15;
         else
             steeringSelect = ["Starboard","Center","Port"];
             steering2Interp = [-15,0,15,steeringValue];
