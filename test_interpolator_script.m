@@ -27,8 +27,9 @@ mySpeed = A(:,4);
 
 num = height(A);
 v = zeros(num,12);
+tic
 for i = 1:num
     v(i,:) = arcInterpolator(mySteering(i),myHeading(i),...
         myDepth(i),mySpeed(i));
 end
-
+toc
