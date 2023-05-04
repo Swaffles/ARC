@@ -52,12 +52,9 @@ int mainFunc(std::shared_ptr<mc::MATLABApplication> app, const int argc, const c
 		// - change the working directory ("cd") to the location of the CTF
 		// - set the environment variable to the location of the CTF
 		// - edit the code to change the path
-		auto lib = mc::initMATLABLibrary(app, u"MQS_Shallow_water_lib.ctf");
+		auto lib = mc::initMATLABLibrary(app, u"MQS_Shallow_Water_Lib.ctf");
 		std::vector<md::Array> inputs{steering2InterpIn, heading2InterpIn, depth2InterpIn, speed2InterpIn};
 		auto result = lib->feval(u"arcInterpolator", 1, inputs);
-		std::cout << "Function executed successfully" << std::endl;
-		//std::cout << typeid(result).name() << std::endl; // returns "St6vectorIN6matlab4data5ArrayESaIS2_EE"
-		std::cout << result << std::endl;
 	} catch (const std::exception & exc) {
 		std::cerr << exc.what() << std::endl;
 		return -1;

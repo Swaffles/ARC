@@ -1,4 +1,4 @@
-MQS_Shallow_water_lib C++ Shared Library
+MQS_Shallow_Water_Lib C++ Shared Library
 
 1. Prerequisites for Deployment 
 
@@ -35,8 +35,8 @@ Files for the generic interface can be found in the v2\generic_interface subdire
 Files to Package for the Generic Interface
 (in the v2\generic_interface subdirectory)
 ==========================================
--MQS_Shallow_water_lib.ctf (component technology file) 
--MQS_Shallow_water_libv2.hpp
+-MQS_Shallow_Water_Lib.ctf (component technology file) 
+-MQS_Shallow_Water_Libv2.hpp
 -readme.txt
 
 3. Definitions
