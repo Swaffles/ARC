@@ -1,17 +1,17 @@
 <deployment-project plugin="plugin.ezdeploy" plugin-version="1.0">
-  <configuration build-checksum="699281904" file="C:\Users\swafford\Documents\GitHub\ARC\MQS_Shallow_water_lib.prj" location="C:\Users\swafford\Documents\GitHub\ARC" name="MQS_Shallow_water_lib" preferred-package-location="C:\Users\swafford\Documents\GitHub\ARC\MQS_Shallow_water_lib\for_redistribution" preferred-package-type="package.type.exe" target="target.ezdeploy.library" target-name="Library Compiler">
-    <param.appname>MQS_Shallow_water_lib</param.appname>
+  <configuration file="C:\Users\swafford\Documents\GitHub\ARC\MQS_Shallow_water_lib.prj" location="C:\Users\swafford\Documents\GitHub\ARC" name="MQS_Shallow_water_lib" target="target.ezdeploy.library" target-name="Library Compiler">
+    <param.appname>MQS_Shallow_Water_Lib</param.appname>
     <param.icon />
     <param.icons />
     <param.version>1.0</param.version>
     <param.authnamewatermark>Mike Swafford</param.authnamewatermark>
     <param.email>michael-swafford@uiowa.edu</param.email>
     <param.company>University of Iowa</param.company>
-    <param.summary>ARC MQS shallow water interpolation library</param.summary>
-    <param.description>A library for running interpolating the MQS shallow water data set. Core function arcInterpolator takes in the points you wish to interpolate between and returns the force compenent vector that was interpolated from the experimental data set. Values passed in must be in the following range. Steering2Interp = [-15,15], Heading2Interp = [0,180], Depth2Interp = [0.0488, 0.2095] m, Speed2Interp = [0.2045,0.89] m/s.</param.description>
+    <param.summary>C++ Shared MATLAB Library</param.summary>
+    <param.description>A shared library for C++ and MATLAB for interpolating experimental data from shallow water experiments with the MQS.</param.description>
     <param.screenshot>C:\Users\swafford\Pictures\Logos and branding\MASTLAB.png</param.screenshot>
     <param.guid />
-    <param.installpath.string>\University of Iowa\MQS_Shallow_water_lib\</param.installpath.string>
+    <param.installpath.string>\University of Iowa\MQS_Shallow_Water_Lib\</param.installpath.string>
     <param.installpath.combo>option.installpath.programfiles</param.installpath.combo>
     <param.logo />
     <param.install.notes />

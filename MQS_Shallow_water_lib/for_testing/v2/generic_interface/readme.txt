@@ -23,8 +23,8 @@ in the MathWorks Documentation Center.
 
 Files to Package for the Generic Interface
 ==========================================
--MQS_Shallow_water_lib.ctf (component technology file) 
--MQS_Shallow_water_libv2.hpp
+-MQS_Shallow_Water_Lib.ctf (component technology file) 
+-MQS_Shallow_Water_Libv2.hpp
 -This readme file
 
 3. Definitions
