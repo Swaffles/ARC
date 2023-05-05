@@ -88,8 +88,8 @@ Contributions to the ARC Shallow Water are welcome. To contribute:
 4. Push your changes to your fork.
 5. Create a pull request.
 
-## Licnese
-This project is licensed under the Apache 2.0 License - see the [LICENSE](https://github.com/Swaffles/ARC/blob/main/LICENSE)
+## License
+This project is licensed under the Apache 2.0 License - see the [LICENSE](https://github.com/Swaffles/ARC/blob/main/LICENSE) file for details.
 
 ## Acknowledgements
 - The ARC Shallow Water experiment was funded by the U.S. Army Ground Vehicle Research Center in Warren, MI.
