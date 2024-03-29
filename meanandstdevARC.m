@@ -107,9 +107,9 @@ function myTable = meanandstdevARC(dataTable,testMatrix,dataFileName,buoyantTabl
     % WMy 5 -> 6 to become WMz
     tempMean = tempMean([1 3 2 4 6 5]);
     tempStd = tempStd([1 3 2 4 6 5]);
-    %multiply all but elements 3 and 6 by -1
-    tempMean([2:3,5:6]) = -1*tempMean([2:3,5:6]);
-    tempStd([2:3,5:6]) = -1*tempStd([2:3,5:6]);
+    %multiply all but elements 2 and 5 by -1
+    tempMean([2:3,5:6]) = -1*tempMean([1,3,4,6]);
+    tempStd([2:3,5:6]) = -1*tempStd([1,3,4,6]);
     try
         meanWheelForce = tempMean+buoyantCorrection{7:12,2}';
 

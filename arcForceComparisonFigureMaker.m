@@ -357,7 +357,8 @@ fields = fieldnames(data);
         
         figName = strcat({'NoTiles_Depth_Comparison'},Force{indF},...
             {'_U_'},string(Speed(indS)),{'_Delta_'},string(Steering(indST)));
-        print(figName,'-dmeta');
+        %print(figName,'-dmeta');
+        %savefig(figName);
     end
    
 end

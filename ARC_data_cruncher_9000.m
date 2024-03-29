@@ -367,7 +367,7 @@ for ind = 1:2
     figWidth = 1.618 *figHeight;
     f1 = figure("Name",strcat(figname,' v Heading'),"Position",[50 50 figWidth figHeight]);
     label = strcat(figname,{' (N, Nm)'});
-    tiles = false;
+    tiles = false; % doesn't appear the true value works 3-28-2024
     barelabel = figname;
     arcForceComparisonFigureMaker(Arc,ind,tiles,label,barelabel,vars,volume);
 end
