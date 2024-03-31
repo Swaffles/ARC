@@ -166,24 +166,23 @@ end
                 indn = yData1{:,"Steering"} == n(j);
                 yData2{counter} = yData1(indn,:);
                 yData2{counter} = sortrows(yData2{counter},'Fr');
+                TF = isoutlier(yData2{counter}{:,barelabel},'median');
+                yData2{counter}{TF,:} = [];
                 hold on
                 if n(j) == 0 
                     scatter(yData2{counter},'Fr',barelabel,'filled','Marker','o','MarkerFaceColor',YELLOW,...
-                        'SizeData',49,'MarkerEdgeColor',[0 0 0],...
-                        'DisplayName',strcat({'Steering= '},string(yData2{counter}{1,"Steering"}),"^\circ"));
+                        'SizeData',49,'DisplayName',strcat({'Steering= '},string(yData2{counter}{1,"Steering"}),"^\circ"));
                 elseif n(j) == 15 
                     scatter(yData2{counter},'Fr',barelabel,'filled','Marker','<','MarkerFaceColor',BLUE,...
-                        'SizeData',49,'MarkerEdgeColor',[0 0 0],...
-                        'DisplayName',strcat({'Steering= '},string(yData2{counter}{1,"Steering"}),"^\circ"));
+                        'SizeData',49,'DisplayName',strcat({'Steering= '},string(yData2{counter}{1,"Steering"}),"^\circ"));
                 else
                     scatter(yData2{counter},'Fr',barelabel,'filled','Marker','>','MarkerFaceColor',RED,...
-                        'SizeData',49,'MarkerEdgeColor',[0 0 0],...
-                        'DisplayName',strcat({'Steering= '},string(yData2{counter}{1,"Steering"}),"^\circ"));
+                        'SizeData',49,'DisplayName',strcat({'Steering= '},string(yData2{counter}{1,"Steering"}),"^\circ"));
                 end
                 counter = counter+1;
             end %end steering for loop
-        title(strcat(Label,' v. Froude Number at Heading  ',string(Heading(indH)),'^\circ'),'Interpreter','tex');
-        legend('Location','southoutside','NumColumns',2*j,"Interpreter","tex");
+        title(strcat(Label,' v. Froude Number at Heading ',string(Heading(indH)),'^\circ'),'Interpreter','tex');
+        legend('Location','southoutside','NumColumns',j,"Interpreter","tex");
         createFroudeFit(yData2{:}{:,"Fr"},yData2{:}{:,barelabel});
         ylabel(label,'Interpreter','latex');
         if depthBased

@@ -188,8 +188,8 @@ end
 cd(savePath);
 for ind = 1:6
     figname = vars{ind};
-    f1 = figure("Name",strcat(figname,' v Heading'),'units','normalized','OuterPosition',[0 0 1 1]); %makes full screen size
-    label = strcat(figname,' (N)');
+    f1 = figure("Name",strcat(figname,' v Heading'),'units','inches','Position',[-17 0.5 6.5 8]);
+    label = strcat(figname,', N');
     barelabel = figname;
     dims = true; %true for dimensional forces/moments
     forces = true;
@@ -206,8 +206,8 @@ cd(programPath);
 for ind = 7:12
     figname = vars{ind};
     figname = strrep(figname,'_','-');
-    f2 = figure("Name",strcat(figname,' v Heading'));
-    label = strcat(figname,' (N)');
+    f2 = figure("Name",strcat(figname,' v Heading'),'units','inches','Position',[-17 0.5 6.5 8]);
+    label = strcat(figname,', N');
     barelabel = figname;
     dims = true;
     forces = true;
@@ -283,7 +283,7 @@ end
 for ind = 1:6
     figname = vars{ind};
     figname = strcat('C',figname);
-    f6 = figure("Name",strcat(figname,' v Froude Number'));
+    f6 = figure("Name",strcat(figname,' v Froude Number'),'units','inches','Position',[-17 0.5 6.5 6.5]);
     label = figname;
     barelabel = vars{ind};
     forces = true; %changed automatically by program

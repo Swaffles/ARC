@@ -31,11 +31,17 @@ initFit = fit( xData, yData, ft, opts);
 fdata = feval(initFit,xData);
 outliers = abs(fdata-yData) > 1.5*std(yData);
 opts.Exclude = outliers;
+points = findobj(gca,'Type','scatter');
+xDataClean = xData(~outliers);
+yDataClean = yData(~outliers);
+points.XData = xDataClean;
+points.YData = yDataClean;
+
 
 [fitresult, gof] = fit(xData, yData, ft, opts);
 RSEME = gof.rmse;
 coeffs = coeffvalues(fitresult);
-eqnStr = sprintf('y = %.2ex^2+%.2ex+%.2e,\n RMSE=%.2e',coeffs(1),coeffs(2),coeffs(3),RSEME);
+eqnStr = sprintf('y = %.2fx^2+%.2fx+%.2f,\n RMSE=%.2e',coeffs(1),coeffs(2),coeffs(3),RSEME);
 %eqnStr = sprintf('y = %.2fx^3+%.2fx^2+%.2fx+%.2f,\n RMSE=%.2e',coeffs(1),coeffs(2),coeffs(3),coeffs(4),RSEME);
 
 % Plot fit with data.
